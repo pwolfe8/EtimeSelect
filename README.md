@@ -9,7 +9,7 @@ ___
 3) Turn on Developer mode (in upper right-hand corner) <br/>
     ![developer mode slider](readme_images/developer_mode.png)
 4) Click "Load unpacked" and select the "Etime_Select" folder in this repo <br/>
-    ![load unpacked button](readme_images/load_unpacked.png)
+    ![load unpacked button](readme_images/load_unpacked.png)<br/>
     ![extension folder](readme_images/extension_folder.png)
 5) That's it! You should see the Etime Select logo in your extensions bar <br/>
     ![EtimeSelect logo](readme_images/etime_select_logo.png)
