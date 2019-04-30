@@ -16,3 +16,11 @@ ___
 
 
 ## Try It Out!
+1) Go to your favorite DeltekTC etime website.
+2) While on the timesheet page try selecting those things that were previously unselectable!
+3) It should be selectable now! (and copy-pasteable via ctrl+c and ctrl+v or right click menu)
+
+___
+Email me with any bugs or additional features you'd like. <br/>
+Thanks! <br/>
+-Philip
