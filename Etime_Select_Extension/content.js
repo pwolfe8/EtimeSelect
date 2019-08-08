@@ -63,12 +63,14 @@ function dayHoursEmpty(innerDoc, date_num) {
 }
 
 
-var monthPeriodEndText = null;
 var daysInMonth = null;
 var currentTotalHours = null;
 var lastTotalHours = null;
 
 
+var originalPrintText = null;
+var lastTotalHours = null;
+var calculatedSurplusHours = 'calculating...';
 
 
 setInterval(function() {
@@ -89,18 +91,31 @@ setInterval(function() {
         if (currentTotalHoursBox == null)
             return;
         currentTotalHours = currentTotalHoursBox.textContent;
-        // TODO: check for updates on currentTotalHours and recalculate if so
+        // end function if total hours is same as last updated ones
 
-
-
+        if (lastTotalHours == null){
+            lastTotalHours == currentTotalHours;
+        }
+        else if (currentTotalHours == lastTotalHours){
+            return;
+        } else {
+            lastTotalHours = currentTotalHours;
+        }
+            
+        
+        // get print location box & original text content
+        var printLocation = innerDoc.getElementById('headerValueLabel');
+        if (printLocation == null)
+            return;
+        if (originalPrintText == null) {
+            originalPrintText = printLocation.textContent;
+        }
+        
         // get box for month period total for num days in month and also to print to it
         var monthPeriodEndBox = innerDoc.getElementById('endingDateSpan');
         if (monthPeriodEndBox == null)
             return;
-        if (monthPeriodEndText == null) { // check if init box val has been grabbed yet (only grab once)
-            monthPeriodEndText = monthPeriodEndBox.textContent;
-            daysInMonth = monthPeriodEndBox.textContent.split(' ')[1].split(',')[0]; // get number of days in month
-        }
+        daysInMonth = monthPeriodEndBox.textContent.split(' ')[1].split(',')[0]; // get number of days in month
 
         
         // main calculation 
@@ -124,10 +139,10 @@ setInterval(function() {
         }
 
         // final calc
-        var calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
+        calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
         console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
+        printLocation.textContent =  'Surplus Hours: ' + calculatedSurplusHours + '\xa0\xa0\xa0\xa0|\xa0\xa0\xa0\xa0' + originalPrintText;
         
-        monthPeriodEndBox.textContent = monthPeriodEndText + calculatedSurplusHours;
         // sendResponse({numHours: calculatedSurplusHours});
         
     //   } // end request greeting == 'hello'

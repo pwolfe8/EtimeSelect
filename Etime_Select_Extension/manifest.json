@@ -2,8 +2,8 @@
     "manifest_version": 2,
     "name": "Etime Select",
     "short_name": "EtimeSelect",
-    "version": "6.9.0",
-    "description": "Enables selecting & copying unselectable text in DeltekTC etime software",
+    "version": "6.9.1",
+    "description": "Enables selecting & copying unselectable text in DeltekTC etime software. [Update 6.9.1] Added surplus hour counter.",
 
     "icons": { 
         "16": "icons/icon16.png",
