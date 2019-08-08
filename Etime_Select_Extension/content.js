@@ -1,26 +1,22 @@
 /* Select the Unselectable Charge Numbers */
 function selectElement(e) {
-    var x = e.clientX, y = e.clientY, elementMouseIsOver = document.elementsFromPoint(x, y);
+    var x = e.clientX, y = e.clientY,
+        elementMouseIsOver = document.elementsFromPoint(x, y);
 
     // get the raw text inside selected element
-    var raw_text_element = elementMouseIsOver[0]
-    if (raw_text_element == null)
-        return;
-    var raw_text = raw_text_element.textContent;
+    var raw_text = elementMouseIsOver[0].textContent;
+    // console.log(elementMouseIsOver[0]); // for debug
     
     // select raw text if not empty and of proper class name
-    if (raw_text_element.length > 0 && elementMouseIsOver[0].className === "u") {
+    if (raw_text.length > 0 && elementMouseIsOver[0].className === "u") {
         window.getSelection().selectAllChildren(elementMouseIsOver[0]);
     }
 }
+
 $(window).click(selectElement);
 
 
 /* Calculate Surplus Hours Worked */
-
-// $("body").on('DOMSubtreeModified', "unitFrameDiv", function() {
-//     console.log('changed');
-// });
 
 function isWorkday(innerDoc, date_num) {
     if (innerDoc == null)
@@ -142,7 +138,6 @@ setInterval(function() {
         calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
         console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
         printLocation.textContent =  'Surplus Hours: ' + calculatedSurplusHours + '\xa0\xa0\xa0\xa0|\xa0\xa0\xa0\xa0' + originalPrintText;
-        
         // sendResponse({numHours: calculatedSurplusHours});
         
     //   } // end request greeting == 'hello'
