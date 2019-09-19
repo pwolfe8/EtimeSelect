@@ -5,7 +5,6 @@ function selectElement(e) {
 
     // get the raw text inside selected element
     var raw_text = elementMouseIsOver[0].textContent;
-    // console.log(elementMouseIsOver[0]); // for debug
     
     // select raw text if not empty and of proper class name
     if (raw_text.length > 0 && elementMouseIsOver[0].className === "u") {
@@ -35,7 +34,6 @@ function isWorkday(innerDoc, date_num) {
     if (dayStr == 'Sat' || dayStr == 'Sun')
         isTrue = false;
     
-    // console.log("day: " + dayStr + '('+ date_num + '), workday: ' + isTrue);
     return isTrue;
 
 }
@@ -50,7 +48,6 @@ function dayHoursEmpty(innerDoc, date_num) {
     if (totalDayHoursBox == null)
         return null;
 
-    // console.log('total day hours: ' + totalDayHoursBox.textContent);
     if (totalDayHoursBox.textContent == '')
         return true;
     else 
@@ -58,20 +55,15 @@ function dayHoursEmpty(innerDoc, date_num) {
 
 }
 
-
 var daysInMonth = null;
 var currentTotalHours = null;
 var lastTotalHours = null;
-
 
 var originalPrintText = null;
 var lastTotalHours = null;
 var calculatedSurplusHours = 'calculating...';
 
-
 setInterval(function() {
-// chrome.runtime.onMessage.addListener( function(request, sender, sendResponse) {
-    //   if (request.greeting == "hello") {
         
     // grab inner doc 
         var iframe = document.getElementById('unitFrame');
@@ -97,7 +89,6 @@ setInterval(function() {
         } else {
             lastTotalHours = currentTotalHours;
         }
-            
         
         // get print location box & original text content
         var printLocation = innerDoc.getElementById('headerValueLabel');
@@ -138,8 +129,10 @@ setInterval(function() {
         calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
         console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
         printLocation.textContent =  'Surplus Hours: ' + calculatedSurplusHours + '\xa0\xa0\xa0\xa0|\xa0\xa0\xa0\xa0' + originalPrintText;
-        // sendResponse({numHours: calculatedSurplusHours});
         
-    //   } // end request greeting == 'hello'
-    // });
-}, 1000); // trigger every 10 seconds
+}, 1000); // trigger every 1 second(s)
+
+
+
+/* Enable Custom Charge Number Names */
+
