@@ -1,10 +1,11 @@
+/* Project Settings Button */
 .button_styling {
     height:100%;
     width:14px;
     padding: 0;
+    float: right;
     display: inline-block;
     vertical-align: middle;
-    float: right;
     text-align: center;
 }
 
@@ -23,8 +24,8 @@
     background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
   }
   
-  /* Modal Content */
-  .modal-content {
+/* Modal Content */
+.modal_content {
     background-color: #fefefe;
     margin: auto;
     padding: 20px;
@@ -34,8 +35,8 @@
     font-size: 15px;
   }
   
-  /* The Close Button */
-  .close_modal {
+/* The Close Button */
+.close_modal {
     color: #aaaaaa;
     float: right;
     font-size: 28px;

@@ -15,6 +15,9 @@ function selectElement(e) {
     // if (raw_text.length > 0 && elementMouseIsOver[0].parentElement.id === "udtColumn1" )
     {
         window.getSelection().selectAllChildren(elementMouseIsOver[0]);
+        chrome.storage.sync.get(null, function(result) {
+            console.log('chrome storage: ' + result.test_setting );
+        });
     }
 }
 $(window).click(selectElement);
@@ -147,7 +150,7 @@ setInterval(function() {
 var iframe = document.getElementById('unitFrame');
 if (iframe != null) {
     iframe.addEventListener("load", function() {
-
+        
         var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
         if (innerDoc == null)
             return;
@@ -164,8 +167,10 @@ if (iframe != null) {
                 var modalDiv = document.createElement('div');
                 modalDiv.id = "myModal";
                 modalDiv.setAttribute("class", "modal");
+
                     var modalContent = document.createElement('div');
-                    modalContent.setAttribute("class", "modal-content");
+                    modalContent.setAttribute("class", "modal_content");
+                        
                         var modalSpan = document.createElement('span');
                         modalSpan.setAttribute("class", "close_modal");
                         modalSpan.innerHTML = "&times";
@@ -176,8 +181,10 @@ if (iframe != null) {
                             
                         var modalText = document.createElement('p');
                         modalText.innerHTML = "hello there this is text!";
+
                     modalContent.appendChild(modalSpan);
                     modalContent.appendChild(modalText);
+
                 modalDiv.appendChild(modalContent);
                 el.appendChild(modalDiv);
 
@@ -185,10 +192,10 @@ if (iframe != null) {
                 btn.setAttribute("class","button_styling");
                 btn.innerHTML = "&#x22EE";                 
                 btn.onclick = function() {
+                    chrome.storage.sync.set({"test_setting": "pizza666" });
+
                     console.log(this.parentElement.textContent + ' hello there');
                     var modal = this.parentElement.firstElementChild; // get myModal
-                    if (modal == null)
-                        console.log("cant find myModal");
                     modal.style.display = "block";
                 };
                 el.appendChild(btn);
