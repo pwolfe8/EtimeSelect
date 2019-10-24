@@ -158,20 +158,31 @@ if (iframe != null) {
             var el = innerDoc.getElementById('udt' + i + '_0');
             if (el.textContent.length > 0) {
                 
-                console.log(el.textContent);
                 var btn = document.createElement("BUTTON");
                 btn.setAttribute("class","button_styling");
                 btn.innerHTML = "&#x22EE "; 
                 el.appendChild(btn);
-                // el.insertBefore(btn, el.firstChild);
                 
-                // btn.setAttribute("onclick", alert("clicked"));
+                btn.onclick = function( el ) {
+                    console.log(this.parentElement.textContent + ' hello there');
+                    modal.style.display = "block";
+                };
+                <div id="myModal" class="modal">
+
             }
                 
 
         }
 
     });
+}
+
+
+var span = document.getElementsByClassName("close")[0];
+
+
+function button_settings( el ) {
+    console.log(el.textContent + ' hello there');
 }
   
 
