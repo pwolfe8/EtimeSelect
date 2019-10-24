@@ -1,7 +1,10 @@
 /* Select the Unselectable Charge Numbers */
 function selectElement(e) {
-    var x = e.clientX, y = e.clientY,
-        elementMouseIsOver = document.elementsFromPoint(x, y);
+    var x = e.clientX;
+    var y = e.clientY;
+    var elementMouseIsOver = document.elementsFromPoint(x, y);
+    if (elementMouseIsOver == null || elementMouseIsOver[0] == null)
+        return null;
 
     // get the raw text inside selected element
     var raw_text = elementMouseIsOver[0].textContent;
@@ -158,17 +161,37 @@ if (iframe != null) {
             var el = innerDoc.getElementById('udt' + i + '_0');
             if (el.textContent.length > 0) {
                 
+                var modalDiv = document.createElement('div');
+                modalDiv.id = "myModal";
+                modalDiv.setAttribute("class", "modal");
+                    var modalContent = document.createElement('div');
+                    modalContent.setAttribute("class", "modal-content");
+                        var modalSpan = document.createElement('span');
+                        modalSpan.setAttribute("class", "close_modal");
+                        modalSpan.innerHTML = "&times";
+                        modalSpan.onclick = function () {
+                            var modal = this.parentElement.parentElement.parentElement.firstElementChild; // get myModal
+                            modal.style.display = "none";
+                        }
+                            
+                        var modalText = document.createElement('p');
+                        modalText.innerHTML = "hello there this is text!";
+                    modalContent.appendChild(modalSpan);
+                    modalContent.appendChild(modalText);
+                modalDiv.appendChild(modalContent);
+                el.appendChild(modalDiv);
+
                 var btn = document.createElement("BUTTON");
                 btn.setAttribute("class","button_styling");
-                btn.innerHTML = "&#x22EE "; 
-                el.appendChild(btn);
-                
-                btn.onclick = function( el ) {
+                btn.innerHTML = "&#x22EE";                 
+                btn.onclick = function() {
                     console.log(this.parentElement.textContent + ' hello there');
+                    var modal = this.parentElement.firstElementChild; // get myModal
+                    if (modal == null)
+                        console.log("cant find myModal");
                     modal.style.display = "block";
                 };
-                <div id="myModal" class="modal">
-
+                el.appendChild(btn);
             }
                 
 
