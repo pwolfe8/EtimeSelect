@@ -1,0 +1,9 @@
+.button_styling {
+    height:100%;
+    width:14px;
+    padding: 0;
+    display: inline-block;
+    vertical-align: middle;
+    float: right;
+    text-align: center;
+}

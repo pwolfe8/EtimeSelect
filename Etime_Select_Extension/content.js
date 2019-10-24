@@ -6,12 +6,14 @@ function selectElement(e) {
     // get the raw text inside selected element
     var raw_text = elementMouseIsOver[0].textContent;
     
+    
     // select raw text if not empty and of proper class name
-    if (raw_text.length > 0 && elementMouseIsOver[0].className === "u") {
+    if (raw_text.length > 0 && elementMouseIsOver[0].className === "u") 
+    // if (raw_text.length > 0 && elementMouseIsOver[0].parentElement.id === "udtColumn1" )
+    {
         window.getSelection().selectAllChildren(elementMouseIsOver[0]);
     }
 }
-
 $(window).click(selectElement);
 
 
@@ -62,6 +64,9 @@ var lastTotalHours = null;
 var originalPrintText = null;
 var lastTotalHours = null;
 var calculatedSurplusHours = 'calculating...';
+
+
+
 
 setInterval(function() {
         
@@ -127,7 +132,7 @@ setInterval(function() {
 
         // final calc
         calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
-        console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
+        // console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
         printLocation.textContent =  'Surplus Hours: ' + calculatedSurplusHours + '\xa0\xa0\xa0\xa0|\xa0\xa0\xa0\xa0' + originalPrintText;
         
 }, 1000); // trigger every 1 second(s)
@@ -135,4 +140,51 @@ setInterval(function() {
 
 
 /* Enable Custom Charge Number Names */
+
+var iframe = document.getElementById('unitFrame');
+if (iframe != null) {
+    iframe.addEventListener("load", function() {
+
+        var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+        if (innerDoc == null)
+            return;
+        
+        var projectNameColumn = innerDoc.getElementById('udtColumn0');
+        if (projectNameColumn == null)
+            return;      
+
+        numchildren = projectNameColumn.children.length;
+        for (i=0; i<numchildren; i++) {
+            var el = innerDoc.getElementById('udt' + i + '_0');
+            if (el.textContent.length > 0) {
+                
+                console.log(el.textContent);
+                var btn = document.createElement("BUTTON");
+                btn.setAttribute("class","button_styling");
+                btn.innerHTML = "&#x22EE "; 
+                el.appendChild(btn);
+                // el.insertBefore(btn, el.firstChild);
+                
+                // btn.setAttribute("onclick", alert("clicked"));
+            }
+                
+
+        }
+
+    });
+}
+  
+
+// window.onload = function() {
+//     alert('Page loaded');
+// };
+
+
+// document.addEventListener('mousemove', function (e) {
+//     var srcElement = e.srcElement;
+//     // Lets check if our underlying element is a DIV.
+//     if (srcElement.nodeName == 'DIV') {
+//         srcElement.textContent = 'asdf';
+//     }
+//   }, false);
 
