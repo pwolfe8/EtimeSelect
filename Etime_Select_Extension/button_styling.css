@@ -42,7 +42,6 @@
     font-size: 28px;
     font-weight: bold;
   }
-  
   .close_modal:hover,
   .close_modal:focus {
     color: #000;
@@ -50,3 +49,9 @@
     cursor: pointer;
   }
   
+
+
+/* Inputs */
+input[type="text"].focus {
+    width: 50px
+}

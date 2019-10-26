@@ -172,18 +172,51 @@ if (iframe != null) {
                     modalContent.setAttribute("class", "modal_content");
                         
                         var modalSpan = document.createElement('span');
-                        modalSpan.setAttribute("class", "close_modal");
-                        modalSpan.innerHTML = "&times";
-                        modalSpan.onclick = function () {
-                            var modal = this.parentElement.parentElement.parentElement.firstElementChild; // get myModal
-                            modal.style.display = "none";
-                        }
+                            modalSpan.setAttribute("class", "close_modal");
+                            modalSpan.innerHTML = "&times";
+                            modalSpan.onclick = function () {
+                                var modal = this.parentElement.parentElement.parentElement.firstElementChild; // get myModal
+                                modal.style.display = "none";
+                            }
+                        modalContent.appendChild(modalSpan);
                             
                         var modalText = document.createElement('p');
-                        modalText.innerHTML = "hello there this is text!";
+                        modalContent.appendChild(modalText);
+                        
+                        modalText.innerHTML = "Project Setting for [charge num here]</br>";
+                        
+                        var customProjectNamePar = document.createElement('p');
+                            customProjectNamePar.setAttribute("class", "modal_content");
+                            // customProjectName.innerHTML = "Set Project Name: ";
+                            
+                            var customProjectNameForm = document.createElement('form');
+                            customProjectNameForm.setAttribute("class", "modal_content");
+                            customProjectNameForm.setAttribute("rows","1");
+                            customProjectNameForm.setAttribute("cols","42");
+                            customProjectNameForm.innerHTML = "Custom Project Name: ";
+                            customProjectNamePar.appendChild(customProjectNameForm);
 
-                    modalContent.appendChild(modalSpan);
-                    modalContent.appendChild(modalText);
+                                var customProjectNameInput = document.createElement('input');
+                                // customProjectNameInput.id = "editor";
+                                customProjectNameInput.setAttribute("class", "focus");
+                                customProjectNameInput.setAttribute("name", "customName");
+                                customProjectNameInput.setAttribute("type", "text");
+                                customProjectNameInput.onclick = function() {
+                                    this.focus();
+                                }
+                                customProjectNameForm.appendChild(customProjectNameInput);
+                                
+
+                                var submitButton = document.createElement('button');
+                                submitButton.setAttribute("type","reset");
+                                customProjectNameForm.appendChild(submitButton);
+
+                        modalContent.appendChild(customProjectNamePar);
+
+                        // var projectNotes = document.createElement('p');
+                        // modalContent.appendChild(projectNotes);
+                        
+        
 
                 modalDiv.appendChild(modalContent);
                 el.appendChild(modalDiv);
