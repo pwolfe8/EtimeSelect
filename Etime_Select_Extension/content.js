@@ -154,7 +154,60 @@ if (iframe != null) {
         var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
         if (innerDoc == null)
             return;
+
+        /* Create Modal Div and attach to  */   
+        var myModalLocation = innerDoc.getElementById('unitDiv');
+
+            var modalDiv = document.createElement('div');
+                modalDiv.id = "myModal";
+                modalDiv.setAttribute("class", "modal");
+                    var modalContent = document.createElement('div');
+                    modalContent.setAttribute("class", "modal_content");                        
+                        var modalSpan = document.createElement('span');
+                            modalSpan.setAttribute("class", "close_modal");
+                            modalSpan.innerHTML = "&times";
+                            modalSpan.onclick = function () {
+                                // var modal = this.parentElement.parentElement.parentElement.firstElementChild; // get myModal
+                                var modal = innerDoc.getElementById('myModal');
+                                modal.style.display = "none";
+                            }
+                        modalContent.appendChild(modalSpan);
+
+                        var modalText = document.createElement('p');
+                        modalText.innerHTML = "Project Settings for [charge num here]";
+                        modalContent.appendChild(modalText);
+
+                        var myProjectName = document.createElement('p');
+                        myProjectName.innerHTML = "Custom Project Name: ";
+                            var myProjectNameInput = document.createElement('input');
+                            myProjectNameInput.id = "myProjectNameInput";
+                            myProjectNameInput.setAttribute('class', 'native-key-bindings');
+                            myProjectNameInput.setAttribute('type', 'text');
+                            myProjectName.appendChild(myProjectNameInput);
+
+                            var readProjectNameInput = document.createElement('button');
+                            readProjectNameInput.textContent = "read input";
+                            readProjectNameInput.onclick = function () {
+                                customNameText = innerDoc.getElementById('myProjectNameInput').value;
+                                console.log('got: ' + customNameText);
+                            }
+                            myProjectName.appendChild(readProjectNameInput);
+                        modalContent.appendChild(myProjectName);
+
+                        var myProjectNotes = document.createElement('p');
+                        myProjectNotes.innerHTML = "Project Notes: ";
+                            var myProjectNotesInput = document.createElement('input');
+                            myProjectNotesInput.id = "myProjectNotesInput";
+                            myProjectNotesInput.setAttribute('class', 'native-key-bindings');
+                            myProjectNotesInput.setAttribute('type', 'text');
+                            myProjectNotes.appendChild(myProjectNotesInput);
+                        modalContent.appendChild(myProjectNotes);
+
+
+                modalDiv.appendChild(modalContent);
+            myModalLocation.appendChild(modalDiv);
         
+        /* Add buttons to project name column to access modal */ 
         var projectNameColumn = innerDoc.getElementById('udtColumn0');
         if (projectNameColumn == null)
             return;      
@@ -163,73 +216,24 @@ if (iframe != null) {
         for (i=0; i<numchildren; i++) {
             var el = innerDoc.getElementById('udt' + i + '_0');
             if (el.textContent.length > 0) {
-                
-                var modalDiv = document.createElement('div');
-                modalDiv.id = "myModal";
-                modalDiv.setAttribute("class", "modal");
-
-                    var modalContent = document.createElement('div');
-                    modalContent.setAttribute("class", "modal_content");
-                        
-                        var modalSpan = document.createElement('span');
-                            modalSpan.setAttribute("class", "close_modal");
-                            modalSpan.innerHTML = "&times";
-                            modalSpan.onclick = function () {
-                                var modal = this.parentElement.parentElement.parentElement.firstElementChild; // get myModal
-                                modal.style.display = "none";
-                            }
-                        modalContent.appendChild(modalSpan);
-                            
-                        var modalText = document.createElement('p');
-                        modalContent.appendChild(modalText);
-                        
-                        modalText.innerHTML = "Project Setting for [charge num here]</br>";
-                        
-                        var customProjectNamePar = document.createElement('p');
-                            customProjectNamePar.setAttribute("class", "modal_content");
-                            // customProjectName.innerHTML = "Set Project Name: ";
-                            
-                            var customProjectNameForm = document.createElement('form');
-                            customProjectNameForm.setAttribute("class", "modal_content");
-                            customProjectNameForm.setAttribute("rows","1");
-                            customProjectNameForm.setAttribute("cols","42");
-                            customProjectNameForm.innerHTML = "Custom Project Name: ";
-                            customProjectNamePar.appendChild(customProjectNameForm);
-
-                                var customProjectNameInput = document.createElement('input');
-                                // customProjectNameInput.id = "editor";
-                                customProjectNameInput.setAttribute("class", "focus");
-                                customProjectNameInput.setAttribute("name", "customName");
-                                customProjectNameInput.setAttribute("type", "text");
-                                customProjectNameInput.onclick = function() {
-                                    this.focus();
-                                }
-                                customProjectNameForm.appendChild(customProjectNameInput);
-                                
-
-                                var submitButton = document.createElement('button');
-                                submitButton.setAttribute("type","reset");
-                                customProjectNameForm.appendChild(submitButton);
-
-                        modalContent.appendChild(customProjectNamePar);
-
-                        // var projectNotes = document.createElement('p');
-                        // modalContent.appendChild(projectNotes);
-                        
-        
-
-                modalDiv.appendChild(modalContent);
-                el.appendChild(modalDiv);
-
+            
                 var btn = document.createElement("BUTTON");
                 btn.setAttribute("class","button_styling");
                 btn.innerHTML = "&#x22EE";                 
                 btn.onclick = function() {
                     chrome.storage.sync.set({"test_setting": "pizza666" });
+                    console.log('modal opened by: ' + this.parentElement.textContent);
 
-                    console.log(this.parentElement.textContent + ' hello there');
-                    var modal = this.parentElement.firstElementChild; // get myModal
+                    var currentEditor = innerDoc.getElementById('editor');
+                    var editorParentChildren = currentEditor.parentElement.children;
+                    for (var i = 0; i < editorParentChildren.length; i++) {
+                        editorParentChildren[i].style.display = "none";
+                    }
+
+                    var modal = innerDoc.getElementById('myModal');
                     modal.style.display = "block";
+                    modal.focus();
+                    innerDoc.getElementById('myProjectNameInput').focus();
                 };
                 el.appendChild(btn);
             }
@@ -239,26 +243,4 @@ if (iframe != null) {
 
     });
 }
-
-
-var span = document.getElementsByClassName("close")[0];
-
-
-function button_settings( el ) {
-    console.log(el.textContent + ' hello there');
-}
-  
-
-// window.onload = function() {
-//     alert('Page loaded');
-// };
-
-
-// document.addEventListener('mousemove', function (e) {
-//     var srcElement = e.srcElement;
-//     // Lets check if our underlying element is a DIV.
-//     if (srcElement.nodeName == 'DIV') {
-//         srcElement.textContent = 'asdf';
-//     }
-//   }, false);
 
