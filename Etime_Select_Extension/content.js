@@ -15,9 +15,6 @@ function selectElement(e) {
     // if (raw_text.length > 0 && elementMouseIsOver[0].parentElement.id === "udtColumn1" )
     {
         window.getSelection().selectAllChildren(elementMouseIsOver[0]);
-        chrome.storage.sync.get(null, function(result) {
-            console.log('chrome storage: ' + result.test_setting );
-        });
     }
 }
 $(window).click(selectElement);
@@ -147,6 +144,79 @@ setInterval(function() {
 
 /* Enable Custom Charge Number Names */
 
+function HideEtimeEditor(innerDoc) {
+    var etimeEditor = innerDoc.getElementById('editor');
+    var editorParentChildren = etimeEditor.parentElement.children;
+    for (var i = 0; i < editorParentChildren.length; i++) {
+        editorParentChildren[i].style.display = "none";
+    }
+}
+
+function ShowEtimeEditor(innerDoc) {
+    var etimeEditor = innerDoc.getElementById('editor');
+    var editorParentChildren = etimeEditor.parentElement.children;
+    for (var i = 0; i < editorParentChildren.length; i++) {
+        editorParentChildren[i].style.display = "inline";
+    }
+}
+
+// function SaveProjectVariableAsync(key_append, value) {
+//     // save project specific value 
+//     chrome.storage.sync.get(null, function(result) {
+//         // project retrieved by what the modal overlay was called by
+//         var projectVarKey = result.calledBy + '_' + key_append;
+//         console.log('saving ' + value + ' to ' + projectVarKey );
+//         var newEntry = {};
+//         newEntry[projectVarKey] = value;
+//         chrome.storage.sync.set(newEntry);
+
+//     });
+// }
+
+// function GetProjectVariableAsync(key_append) {
+//     // get project specific value
+//     chrome.storage.sync.get(null, function(result) {
+//         // project retrieved by what the modal overlay was called by
+//         var projectVarKey = result.calledBy + '_' + key_append;
+//         console.log('function retrieving value from ' + projectVarKey + ': ' + result[projectVarKey]);
+//         return result[projectVarKey];
+//     });
+// }
+
+function ReplaceOriginalWithCustomName(innerDoc, calledBy, originalName) {
+
+    var projectVarKey = calledBy + "_originalName";
+    var newEntry = {};
+    newEntry[projectVarKey] = originalName;
+    chrome.storage.sync.set(newEntry, function() {
+        console.log('saved original name ' + originalName + ' to ' + calledBy + "_originalName");
+        
+        // also get custom name and replace now
+        var  projectVarKey = calledBy + '_customName';
+        chrome.storage.sync.get(projectVarKey, function(result) {
+            var customName = result[projectVarKey];
+            if (customName) {
+                console.log('applying custom name ' + customName + ' to ' + calledBy);
+                
+                //modify text before button with custom name
+                innerDoc.getElementById(calledBy + '_projectNameSpan').textContent = customName;
+                // var currentInsides = innerDoc.getElementById(calledBy).innerHTML;
+                // var newInsides = customName + '<button' + currentInsides.split('<button')[1];
+                // console.log('old insides: ' + currentInsides);
+                // console.log('new insides: ' + newInsides);
+                // innerDoc.getElementById(calledBy).innerHTML = newInsides;
+
+            } else {
+                console.log('custom name not yet defined for ' + calledBy);
+            }
+        });
+    });
+
+
+    
+}
+
+
 var iframe = document.getElementById('unitFrame');
 if (iframe != null) {
     iframe.addEventListener("load", function() {
@@ -155,59 +225,112 @@ if (iframe != null) {
         if (innerDoc == null)
             return;
 
-        /* Create Modal Div and attach to  */   
-        var myModalLocation = innerDoc.getElementById('unitDiv');
+        // debug print current chrome sync storage
+        console.log("Current Chrome Sync Storage: ");
+        chrome.storage.sync.get(null, function(result) {
+            console.log(result);
+        });
+        // TODO: find a way to reset sync storage
 
+        /* create & inject modal to inner doc */   
+        var myModalLocation = innerDoc.getElementById('unitDiv');
+            // create modal 
             var modalDiv = document.createElement('div');
                 modalDiv.id = "myModal";
                 modalDiv.setAttribute("class", "modal");
+                    // modal state "calledBy" for storing button that opened the modal
+                    
+                    var modalState = document.createElement('data');
+                    modalState.id = "calledBy";
+                    modalDiv.appendChild(modalState);
+                    
+                    
+
+                    // modal content div for formatting
                     var modalContent = document.createElement('div');
-                    modalContent.setAttribute("class", "modal_content");                        
+                    modalContent.setAttribute("class", "modal_content");      
+                        // modal span for close button                  
                         var modalSpan = document.createElement('span');
                             modalSpan.setAttribute("class", "close_modal");
                             modalSpan.innerHTML = "&times";
                             modalSpan.onclick = function () {
-                                // var modal = this.parentElement.parentElement.parentElement.firstElementChild; // get myModal
                                 var modal = innerDoc.getElementById('myModal');
                                 modal.style.display = "none";
+                                
+                                ShowEtimeEditor(innerDoc);
                             }
                         modalContent.appendChild(modalSpan);
 
-                        var modalText = document.createElement('p');
-                        modalText.innerHTML = "Project Settings for [charge num here]";
-                        modalContent.appendChild(modalText);
+                        // modal header
+                        var modalHeader = document.createElement('p');
+                        modalHeader.innerHTML = "Project Settings for [charge num here]";
+                        modalContent.appendChild(modalHeader);
 
+                        // Project Name Change Form
                         var myProjectName = document.createElement('p');
                         myProjectName.innerHTML = "Custom Project Name: ";
                             var myProjectNameInput = document.createElement('input');
                             myProjectNameInput.id = "myProjectNameInput";
-                            myProjectNameInput.setAttribute('class', 'native-key-bindings');
                             myProjectNameInput.setAttribute('type', 'text');
                             myProjectName.appendChild(myProjectNameInput);
 
                             var readProjectNameInput = document.createElement('button');
-                            readProjectNameInput.textContent = "read input";
+                            readProjectNameInput.textContent = "save";
                             readProjectNameInput.onclick = function () {
-                                customNameText = innerDoc.getElementById('myProjectNameInput').value;
-                                console.log('got: ' + customNameText);
+                                // save custom name
+                                var customNameText = innerDoc.getElementById('myProjectNameInput').value;
+                                
+                                // SaveProjectVariableAsync('customName', customNameText);
+                                // chrome.storage.sync.get(null, function(result) {
+                                //     var projectVarKey = result.calledBy + '_customName';
+                                //     console.log('saving ' + customNameText + ' to ' + projectVarKey );
+                                //     var newEntry = {};
+                                //     newEntry[projectVarKey] = customNameText;
+                                //     chrome.storage.sync.set(newEntry);
+                                // });
+
+                                // apply name
+                                // chrome.storage.sync.get(null, function(result) {
+                                //     var projectVarKey = result.calledBy + '_customName';
+                                //     console.log('retrieved save: ' + result[projectVarKey]);
+                                // });
+
                             }
                             myProjectName.appendChild(readProjectNameInput);
                         modalContent.appendChild(myProjectName);
 
-                        var myProjectNotes = document.createElement('p');
-                        myProjectNotes.innerHTML = "Project Notes: ";
-                            var myProjectNotesInput = document.createElement('input');
-                            myProjectNotesInput.id = "myProjectNotesInput";
-                            myProjectNotesInput.setAttribute('class', 'native-key-bindings');
-                            myProjectNotesInput.setAttribute('type', 'text');
-                            myProjectNotes.appendChild(myProjectNotesInput);
+                        // Original Project Name Form
+                        var originalProjectName = document.createElement('p');
+                        originalProjectName.id = "originalProjectName";
+                        // originalProjectNamePar.innerHTML = "Original Project Name: "; // innerhtml set by button initializations 
+                        modalContent.appendChild(originalProjectName);
+
+                        var myProjectNotes = document.createElement('span');
+                        myProjectNotes.innerHTML = "Project Notes: </br>";
+                            var myProjectNotesTextArea = document.createElement('textarea');
+                            myProjectNotesTextArea.id = "myProjectNotesTextArea";
+                            myProjectNotesTextArea.setAttribute("rows", "8");
+                            myProjectNotesTextArea.setAttribute("cols", "40");
+                            myProjectNotes.appendChild(myProjectNotesTextArea);
+
+                            var newline = document.createElement('span');
+                            newline.innerHTML = "</br>";
+                            myProjectNotes.appendChild(newline);
+
+                            var saveProjectNotes = document.createElement('button');
+                            saveProjectNotes.textContent = "save notes";
+                            saveProjectNotes.onclick = function () {
+                                var customNotesText = innerDoc.getElementById('myProjectNotesTextArea').value;
+                                console.log('got notes: ' + customNotesText);
+                            }
+                            myProjectNotes.appendChild(saveProjectNotes);
+
                         modalContent.appendChild(myProjectNotes);
 
+            modalDiv.appendChild(modalContent);
+        myModalLocation.appendChild(modalDiv);
 
-                modalDiv.appendChild(modalContent);
-            myModalLocation.appendChild(modalDiv);
-        
-        /* Add buttons to project name column to access modal */ 
+        /* Add buttons to valid projects */ 
         var projectNameColumn = innerDoc.getElementById('udtColumn0');
         if (projectNameColumn == null)
             return;      
@@ -217,30 +340,56 @@ if (iframe != null) {
             var el = innerDoc.getElementById('udt' + i + '_0');
             if (el.textContent.length > 0) {
             
+                // saves original name in storage & replaces with last saved custom name
+                var originalNameText = el.textContent;
+                var calledBy = el.id;
+
+                // wrap existing text in a span & append back
+                var projectNameSpan = document.createElement('span');
+                projectNameSpan.id = calledBy + "_projectNameSpan";
+                projectNameSpan.innerHTML = originalNameText;
+                el.innerHTML = "";
+                el.appendChild(projectNameSpan);
+
+                // change out original for custom names
+                ReplaceOriginalWithCustomName(innerDoc, calledBy, originalNameText);
+
+                // add a button on end
                 var btn = document.createElement("BUTTON");
                 btn.setAttribute("class","button_styling");
                 btn.innerHTML = "&#x22EE";                 
                 btn.onclick = function() {
-                    chrome.storage.sync.set({"test_setting": "pizza666" });
-                    console.log('modal opened by: ' + this.parentElement.textContent);
 
-                    var currentEditor = innerDoc.getElementById('editor');
-                    var editorParentChildren = currentEditor.parentElement.children;
-                    for (var i = 0; i < editorParentChildren.length; i++) {
-                        editorParentChildren[i].style.display = "none";
-                    }
+                    HideEtimeEditor(innerDoc);
 
                     var modal = innerDoc.getElementById('myModal');
                     modal.style.display = "block";
                     modal.focus();
                     innerDoc.getElementById('myProjectNameInput').focus();
+
+                    var modalState = innerDoc.getElementById('calledBy');
+                    modalState.setAttribute("value", this.parentElement.id);
+                    console.log('myModal opened by: ' + modalState.value);
+
+                    // Fill Modal with Project Relavant info
+                    // load
+                    // innerDoc.getElementById('originalProjectName').innerHTML = "Original Project Name: " + originalNameText;
                 };
                 el.appendChild(btn);
             }
-                
 
         }
 
     });
 }
+
+
+
+/* TODO: Attempt to enable backspace key & later enter key */
+// $(window).on("keydown", function(e, t) {
+//     console.log("keycode: " + e.keyCode);
+//     if (e.keyCode == 8)  { // && (!/^input$/i.test(t.tagName) || t.disabled || t.readOnly))
+//         e.stopEvent();
+//     }
+// });
 
