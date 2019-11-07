@@ -28,16 +28,13 @@
             "https://*/DeltekTC/*"
         ],
         "css": ["button_styling.css"],
-        "web_accessible_resources": [
-            "icons/*"
-        ],
         "all_frames": true,
         "js": ["jquery.min.js","content.js"],
-        "run_at": "document_end"
+        "run_at": "document_idle"
       }
-    ]
-
-
+    ],
+    "web_accessible_resources": ["pages/settings.html"]
+    
 }
 
   

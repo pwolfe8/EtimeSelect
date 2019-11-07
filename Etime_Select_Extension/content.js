@@ -160,29 +160,6 @@ function ShowEtimeEditor(innerDoc) {
     }
 }
 
-// function SaveProjectVariableAsync(key_append, value) {
-//     // save project specific value 
-//     chrome.storage.sync.get(null, function(result) {
-//         // project retrieved by what the modal overlay was called by
-//         var projectVarKey = result.calledBy + '_' + key_append;
-//         console.log('saving ' + value + ' to ' + projectVarKey );
-//         var newEntry = {};
-//         newEntry[projectVarKey] = value;
-//         chrome.storage.sync.set(newEntry);
-
-//     });
-// }
-
-// function GetProjectVariableAsync(key_append) {
-//     // get project specific value
-//     chrome.storage.sync.get(null, function(result) {
-//         // project retrieved by what the modal overlay was called by
-//         var projectVarKey = result.calledBy + '_' + key_append;
-//         console.log('function retrieving value from ' + projectVarKey + ': ' + result[projectVarKey]);
-//         return result[projectVarKey];
-//     });
-// }
-
 function ReplaceOriginalWithCustomName(innerDoc, calledBy, originalName) {
 
     var projectVarKey = calledBy + "_originalName";
@@ -215,6 +192,19 @@ function ReplaceOriginalWithCustomName(innerDoc, calledBy, originalName) {
 
     
 }
+
+function popupSettings() {
+    var url = chrome.runtime.getURL("pages/settings.html");
+    console.log(url);
+    //url = "https://www.quackit.com/javascript/examples/sample_popup.cfm";
+    // url = "chrome-extension://dlhngmdpojdcpppejojbenemcecmodic/settings.html";
+    window.open(url, 'popUpWindow', 'height=500,width=500,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
+}
+
+function overlaySettings() {
+
+}
+
 
 
 var iframe = document.getElementById('unitFrame');
@@ -357,24 +347,25 @@ if (iframe != null) {
                 // add a button on end
                 var btn = document.createElement("BUTTON");
                 btn.setAttribute("class","button_styling");
-                btn.innerHTML = "&#x22EE";                 
-                btn.onclick = function() {
+                btn.innerHTML = "&#x22EE";
+                btn.addEventListener("click", popupSettings);                 
+                // btn.onclick = function() {
 
-                    HideEtimeEditor(innerDoc);
+                //     HideEtimeEditor(innerDoc);
 
-                    var modal = innerDoc.getElementById('myModal');
-                    modal.style.display = "block";
-                    modal.focus();
-                    innerDoc.getElementById('myProjectNameInput').focus();
+                //     var modal = innerDoc.getElementById('myModal');
+                //     modal.style.display = "block";
+                //     modal.focus();
+                //     innerDoc.getElementById('myProjectNameInput').focus();
 
-                    var modalState = innerDoc.getElementById('calledBy');
-                    modalState.setAttribute("value", this.parentElement.id);
-                    console.log('myModal opened by: ' + modalState.value);
+                //     var modalState = innerDoc.getElementById('calledBy');
+                //     modalState.setAttribute("value", this.parentElement.id);
+                //     console.log('myModal opened by: ' + modalState.value);
 
-                    // Fill Modal with Project Relavant info
-                    // load
-                    // innerDoc.getElementById('originalProjectName').innerHTML = "Original Project Name: " + originalNameText;
-                };
+                //     // Fill Modal with Project Relavant info
+                //     // load
+                //     // innerDoc.getElementById('originalProjectName').innerHTML = "Original Project Name: " + originalNameText;
+                // };
                 el.appendChild(btn);
             }
 

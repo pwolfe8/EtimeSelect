@@ -1,0 +1,44 @@
+<html> 
+    <head> 
+        <title>Project Settings</title>  
+    </head>  
+    <body onload="loadProjectName()" >   
+        <div id="project_settings_title">
+            Project Settings for 
+        </div>
+
+        <div id="custom_project_name">
+            <p>Custom Project Name:</br>
+                <input id="custom_name_text" type="text">
+                <button id="save" onclick="displayResult()">Save</button>            
+            </p>
+        </div>
+
+        <div id="project_notes">
+            <p>Project Notes:
+                </br>
+                <textarea id="project_notes_text" rows="4" cols="50"></textarea>
+                </br>
+                <button id="save" onclick="saveNotes()">Save</button>
+            </p>
+        </div>
+
+        <script>
+            function loadProjectName() {
+                chrome.storage.sync.get(null, function(result) {
+                    var projectVarKey = result.calledBy + '_customName';
+                    proj_num = result[projectVarKey];
+                    document.getElementById("project_settings_title").textContent += proj_num;
+                }
+            }
+            function displayResult() {
+                boxtext = document.getElementById("custom_name_text").textContent;
+                document.getElementById("project_settings_title").innerHTML = "Project Settings for " + boxtext;
+            }
+            function saveNotes() {
+
+            }
+        </script>
+
+    </body>
+</html>
