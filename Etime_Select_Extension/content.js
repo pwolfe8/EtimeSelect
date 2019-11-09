@@ -198,11 +198,31 @@ function popupSettings() {
     console.log(url);
     //url = "https://www.quackit.com/javascript/examples/sample_popup.cfm";
     // url = "chrome-extension://dlhngmdpojdcpppejojbenemcecmodic/settings.html";
-    window.open(url, 'popUpWindow', 'height=500,width=500,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
+    let popup = window.open(url, 'popUpWindow', 'height=500,width=500,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
+    
+    setTimeout( function() {popup.document.body.innerHTML = "HTML";}, 5000);
+
+    // popup.onload = function() {
+    //     console.log("hello there....");
+    //     popup.document.getElementById("project_settings_title").textContent = "6969";
+    // }
+
+    // popup.addEventListener('DOMContentLoaded', settingsOnLoad(popup));
+    // setTimeout(settingsOnLoad(popup), 2000);
+    
+
+    //console.log(popup.document); //document.getElementById("project_settings_title").textContent += "69";
+    // chrome.storage.sync.get(null, function(result) {
+    //     var projectVarKey = result.calledBy + '_customName';
+    //     proj_num = result[projectVarKey];
+    //     openwindow.document.getElementById("project_settings_title").textContent += proj_num;
+    // }); 
+
+
 }
 
-function overlaySettings() {
-
+function settingsOnLoad(popup) {
+    console.log(popup.document);
 }
 
 
