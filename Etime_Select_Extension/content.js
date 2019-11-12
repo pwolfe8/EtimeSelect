@@ -193,14 +193,84 @@ function ReplaceOriginalWithCustomName(innerDoc, calledBy, originalName) {
     
 }
 
-function popupSettings() {
-    var url = chrome.runtime.getURL("pages/settings.html");
-    console.log(url);
-    //url = "https://www.quackit.com/javascript/examples/sample_popup.cfm";
-    // url = "chrome-extension://dlhngmdpojdcpppejojbenemcecmodic/settings.html";
-    let popup = window.open(url, 'popUpWindow', 'height=500,width=500,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
+function popupSettings(button_parent_id) {
+    console.log("Settings popup opened by " + button_parent_id);
+
+    var win = window.open("", "Title", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=200,top="+(screen.height-400)+",left="+(screen.width-840));
+    var settingsInnerHTML    = "<div id=\"settings_title\">Settings for </div>";
+    settingsInnerHTML       += "<div id=\"original_name\">Original Name: </div>";
+    settingsInnerHTML       += "<div id=\"change_me\">change me</div>";
+    settingsInnerHTML       += "<input id=\"custom_name_text\" type=\"text\">";
+    settingsInnerHTML       += "<button id=\"save_proj_name\">Save</button>";
+    win.document.body.innerHTML = settingsInnerHTML;
+
+    chrome.storage.sync.get(null, function(result) {
+        
+        var originalNameKey = button_parent_id + "_originalName";
+        var originalName = result[originalNameKey];
+        var customNameKey = button_parent_id + "_customName";
+        var customName = result[customNameKey];
+
+        if (customName) {
+            win.document.getElementById('settings_title').textContent = "Settings for " + customName;
+        } else {
+            win.document.getElementById('settings_title').textContent = "Settings for " + originalName;
+        }
+        win.document.getElementById('original_name').innerText = "Original Name: " + originalName;
+
+        
+    });
+
+
+    win.document.getElementById('save_proj_name').onclick = function () {
+        
+        win.document.getElementById('change_me').innerText = "it works! ";
+        // win.document.getElementById("change_me").textContent += this.id;
+
+        chrome.storage.sync.get(null, function(result) {
+            console.log("changeme called by: " + result.calledBy);
+            // var projectVarKey = result.calledBy + '_customName';
+            // proj_num = result[projectVarKey];
+            win.document.getElementById("change_me").textContent += result.calledBy;
+        }); 
+
+    }
+
+    // console.log(win.document.getElementById('change_me').innerHTML);
+    // <div id="change_me">change me</div>
     
-    setTimeout( function() {popup.document.body.innerHTML = "HTML";}, 5000);
+    // Project Name Change Form
+    // var myProjectName = document.createElement('p');
+    // myProjectName.innerHTML = "Custom Project Name: ";
+    //     var myProjectNameInput = document.createElement('input');
+    //     myProjectNameInput.id = "myProjectNameInput";
+    //     myProjectNameInput.setAttribute('type', 'text');
+    //     myProjectName.appendChild(myProjectNameInput);
+
+    //     var readProjectNameInput = document.createElement('button');
+    //     readProjectNameInput.textContent = "save";
+    //     readProjectNameInput.onclick = function () {
+    //         // save custom name
+    //         var customNameText = innerDoc.getElementById('myProjectNameInput').value;
+            
+    //     }
+    //     myProjectName.appendChild(readProjectNameInput);
+    // win.document.appendChild(myProjectName);
+
+    
+    
+
+
+            // <p>Custom Project Name:</br>
+            //     <input id="custom_name_text" type="text"><button id="save_proj_name">Save</button>
+            // </p>
+
+
+    // var url = chrome.runtime.getURL("pages/settings.html");
+    // console.log(url);
+    // let popup = window.open(url, 'popUpWindow', 'height=500,width=500,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes');
+    
+    // setTimeout( function() {popup.document.body.innerHTML = "HTML";}, 5000);
 
     // popup.onload = function() {
     //     console.log("hello there....");
@@ -226,6 +296,7 @@ function settingsOnLoad(popup) {
 }
 
 
+var global_called_by = null;
 
 var iframe = document.getElementById('unitFrame');
 if (iframe != null) {
@@ -368,7 +439,18 @@ if (iframe != null) {
                 var btn = document.createElement("BUTTON");
                 btn.setAttribute("class","button_styling");
                 btn.innerHTML = "&#x22EE";
-                btn.addEventListener("click", popupSettings);                 
+                // btn.id = 'udt' + i + '_0' + "_btn";
+                // btn.addEventListener("click", popupSettings);
+                // var button_parent_id = 'udt' + i + '_0';
+                btn.onclick = function() {
+                    var button_parent_id = this.parentElement.id; //'udt' + i + '_0';
+                    console.log("storing calledBy: " + button_parent_id);
+                    // chrome.storage.sync.set({"calledBy": button_parent_id});
+                    popupSettings(button_parent_id);
+                }
+                
+                
+                
                 // btn.onclick = function() {
 
                 //     HideEtimeEditor(innerDoc);
