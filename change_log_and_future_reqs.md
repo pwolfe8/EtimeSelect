@@ -7,5 +7,4 @@
           Fixed bug so now weekend hours are properly handled if they are the last entered.
 
 ## Future Requests
-- [ ] none currently 
-
+- [ ] Deal with auto positioning window dividers & scroll position to show what user desires

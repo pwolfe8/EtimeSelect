@@ -1,0 +1,10 @@
+/* Project Settings Button Styling*/
+.button_styling {
+    height:100%;
+    width:14px;
+    padding: 0;
+    float: right;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+}
