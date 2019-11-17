@@ -3,10 +3,7 @@
     "name": "Etime Select",
     "short_name": "EtimeSelect",
     "version": "6.9.2",
-    "description": "Enables selecting & copying unselectable text in DeltekTC etime software.\n
-        [Update 6.9.1] Added surplus hour counter.
-        [Update 6.9.2] Fixed bug so now weekend hours are properly handled if they are the last entered.
-        ",
+    "description": "Enables selecting & copying unselectable text in DeltekTC etime software.\n[Update 6.9.1] Added surplus hour counter.\n[Update 6.9.2] Added button for project settings that allowed you to save custom project name & project notes.\nFixed bug so now weekend hours are properly handled if they are the last entered.",
 
     "icons": { 
         "16": "icons/icon16.png",
