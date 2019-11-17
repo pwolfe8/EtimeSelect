@@ -1,3 +1,10 @@
+/* Debug Statements */
+var DEBUG_STATEMENTS = true;
+function debug_log( text ) {
+    if (DEBUG_STATEMENTS)
+        console.log(text)
+}
+
 /* Select the Unselectable Charge Numbers */
 function selectElement(e) {
     var x = e.clientX;
@@ -68,9 +75,7 @@ var originalPrintText = null;
 var lastTotalHours = null;
 var calculatedSurplusHours = 'calculating...';
 
-
-
-
+// every interval grab info, calculate, and update text
 setInterval(function() {
         
     // grab inner doc 
@@ -120,7 +125,7 @@ setInterval(function() {
             // check if found last day
             if (!foundLastEnteredDay){
                 // check if that days total hours is empty
-                if (!dayHoursEmpty(innerDoc, i)){
+                if ( !dayHoursEmpty(innerDoc, i) && isWorkday(innerDoc,i) ){
                     foundLastEnteredDay = true;
                     numWorkdaysSoFar++;
                 }
@@ -135,64 +140,46 @@ setInterval(function() {
 
         // final calc
         calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
-        // console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
+        // debug_log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
         printLocation.textContent =  'Surplus Hours: ' + calculatedSurplusHours + '\xa0\xa0\xa0\xa0|\xa0\xa0\xa0\xa0' + originalPrintText;
         
 }, 1000); // trigger every 1 second(s)
 
 
 
-/* Enable Custom Charge Number Names */
+/* Enable Custom Charge Number Names & Project Notes */
 
-function HideEtimeEditor(innerDoc) {
-    var etimeEditor = innerDoc.getElementById('editor');
-    var editorParentChildren = etimeEditor.parentElement.children;
-    for (var i = 0; i < editorParentChildren.length; i++) {
-        editorParentChildren[i].style.display = "none";
-    }
-}
-
-function ShowEtimeEditor(innerDoc) {
-    var etimeEditor = innerDoc.getElementById('editor');
-    var editorParentChildren = etimeEditor.parentElement.children;
-    for (var i = 0; i < editorParentChildren.length; i++) {
-        editorParentChildren[i].style.display = "inline";
-    }
+function ApplyCustomName(innerDoc, calledBy, customName) {
+    innerDoc.getElementById(calledBy + '_projectNameSpan').textContent = customName;
 }
 
 function ReplaceOriginalWithCustomName(innerDoc, calledBy, originalName) {
-
     var projectVarKey = calledBy + "_originalName";
     var newEntry = {};
     newEntry[projectVarKey] = originalName;
     chrome.storage.sync.set(newEntry, function() {
-        console.log('saved original name ' + originalName + ' to ' + calledBy + "_originalName");
+        debug_log('saved original name ' + originalName + ' to ' + calledBy + "_originalName");
         
         // also get custom name and replace now
         var  projectVarKey = calledBy + '_customName';
         chrome.storage.sync.get(projectVarKey, function(result) {
             var customName = result[projectVarKey];
             if (customName) {
-                console.log('applying custom name ' + customName + ' to ' + calledBy);
+                debug_log('applying custom name ' + customName + ' to ' + calledBy);
                 //modify text before button with custom name
-                innerDoc.getElementById(calledBy + '_projectNameSpan').textContent = customName;
+                ApplyCustomName(innerDoc, calledBy, customName); //innerDoc.getElementById(calledBy + '_projectNameSpan').textContent = customName;
             } else {
-                console.log('custom name not yet defined for ' + calledBy);
+                debug_log('custom name not yet defined for ' + calledBy);
             }
         });
     });
-    
 }
-
-function ApplyCustomName(innerDoc, calledBy, customName) {
-    innerDoc.getElementById(calledBy + '_projectNameSpan').textContent = customName;
-}
-
 
 function popupSettings(innerDoc, button_parent_id) {
-    console.log("Settings popup opened by " + button_parent_id);
+    debug_log("Settings popup opened by " + button_parent_id);
 
-    var win = window.open("", "Title", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=200,top="+(screen.height-400)+",left="+(screen.width-840));
+    var win = window.open("", "Title", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=400,height=300,top="+(screen.height / 2 - 150)+",left="+(screen.width / 2 - 200));
+    win.document.title = "Project Settings";
     var settingsInnerHTML    = "<div id=\"settings_title\">Settings for: \"\"</div>";
     settingsInnerHTML       += "<div id=\"original_name\">Original Name: \"\"</div>";
     
@@ -202,7 +189,7 @@ function popupSettings(innerDoc, button_parent_id) {
     settingsInnerHTML       += "</p>";
 
     settingsInnerHTML       += "<p>Project Related Notes:</br>";
-    settingsInnerHTML       += "<textarea id=\"project_notes_text\" rows=\"4\" cols=\"50\"></textarea></br>";
+    settingsInnerHTML       += "<textarea id=\"project_notes_text\" rows=\"8\" cols=\"50\"></textarea></br>";
     settingsInnerHTML       += "<button id=\"save_proj_notes\">Save</button>";
     settingsInnerHTML       += "</p>";
 
@@ -221,6 +208,7 @@ function popupSettings(innerDoc, button_parent_id) {
         // set custom name if exists
         if (customName) {
             win.document.getElementById('settings_title').textContent = "Settings for: \"" + customName + "\"";
+            win.document.getElementById('custom_name_text').value = customName;
         } else {
             win.document.getElementById('settings_title').textContent = "Settings for: \"" + originalName + "\"";
         }
@@ -237,7 +225,7 @@ function popupSettings(innerDoc, button_parent_id) {
     win.document.getElementById('save_proj_name').onclick = function () {
         var customNameText = win.document.getElementById('custom_name_text').value;
         var projectVarKey = button_parent_id + '_customName';
-        console.log('saving ' + customNameText + ' to ' + projectVarKey );
+        debug_log('saving ' + customNameText + ' to ' + projectVarKey );
         var newEntry = {};
         newEntry[projectVarKey] = customNameText;
         chrome.storage.sync.set(newEntry);
@@ -245,37 +233,22 @@ function popupSettings(innerDoc, button_parent_id) {
         // apply name change update
         ApplyCustomName(innerDoc, button_parent_id, customNameText);
 
+        // apply to current settings window
+        win.document.getElementById('settings_title').textContent = "Settings for: \"" + customNameText + "\"";
+
     }
 
     // set onclick for saving project notes
     win.document.getElementById('save_proj_notes').onclick = function () {
         var projectNotesText = win.document.getElementById('project_notes_text').value;
         var projectNotesKey = button_parent_id + '_projectNotes';
-        console.log('saving \"' + projectNotesText + '\" to \"' + projectNotesKey + "\"" );
+        debug_log('saving \"' + projectNotesText + '\" to \"' + projectNotesKey + "\"" );
         var newEntry = {};
         newEntry[projectNotesKey] = projectNotesText;
         chrome.storage.sync.set(newEntry);
     }
 
-    // setTimeout(settingsOnLoad(popup), 2000);
-    
-
-    //console.log(popup.document); //document.getElementById("project_settings_title").textContent += "69";
-    // chrome.storage.sync.get(null, function(result) {
-    //     var projectVarKey = result.calledBy + '_customName';
-    //     proj_num = result[projectVarKey];
-    //     openwindow.document.getElementById("project_settings_title").textContent += proj_num;
-    // }); 
-
-
 }
-
-function settingsOnLoad(popup) {
-    console.log(popup.document);
-}
-
-
-var global_called_by = null;
 
 var iframe = document.getElementById('unitFrame');
 if (iframe != null) {
@@ -285,112 +258,13 @@ if (iframe != null) {
         if (innerDoc == null)
             return;
 
-        // debug print current chrome sync storage
+        // debug clear sync storage
         // chrome.storage.sync.clear();
 
-        console.log("Current Chrome Sync Storage: ");
+        debug_log("Current Chrome Sync Storage: ");
         chrome.storage.sync.get(null, function(result) {
-            console.log(result);
+            debug_log(result);
         });
-        // TODO: find a way to reset sync storage
-
-        /* create & inject modal to inner doc */   
-        // var myModalLocation = innerDoc.getElementById('unitDiv');
-        //     // create modal 
-        //     var modalDiv = document.createElement('div');
-        //         modalDiv.id = "myModal";
-        //         modalDiv.setAttribute("class", "modal");
-        //             // modal state "calledBy" for storing button that opened the modal
-                    
-        //             var modalState = document.createElement('data');
-        //             modalState.id = "calledBy";
-        //             modalDiv.appendChild(modalState);
-                    
-                    
-
-        //             // modal content div for formatting
-        //             var modalContent = document.createElement('div');
-        //             modalContent.setAttribute("class", "modal_content");      
-        //                 // modal span for close button                  
-        //                 var modalSpan = document.createElement('span');
-        //                     modalSpan.setAttribute("class", "close_modal");
-        //                     modalSpan.innerHTML = "&times";
-        //                     modalSpan.onclick = function () {
-        //                         var modal = innerDoc.getElementById('myModal');
-        //                         modal.style.display = "none";
-                                
-        //                         ShowEtimeEditor(innerDoc);
-        //                     }
-        //                 modalContent.appendChild(modalSpan);
-
-        //                 // modal header
-        //                 var modalHeader = document.createElement('p');
-        //                 modalHeader.innerHTML = "Project Settings for [charge num here]";
-        //                 modalContent.appendChild(modalHeader);
-
-        //                 // Project Name Change Form
-        //                 var myProjectName = document.createElement('p');
-        //                 myProjectName.innerHTML = "Custom Project Name: ";
-        //                     var myProjectNameInput = document.createElement('input');
-        //                     myProjectNameInput.id = "myProjectNameInput";
-        //                     myProjectNameInput.setAttribute('type', 'text');
-        //                     myProjectName.appendChild(myProjectNameInput);
-
-        //                     var readProjectNameInput = document.createElement('button');
-        //                     readProjectNameInput.textContent = "save";
-        //                     readProjectNameInput.onclick = function () {
-        //                         // save custom name
-        //                         var customNameText = innerDoc.getElementById('myProjectNameInput').value;
-                                
-        //                         // SaveProjectVariableAsync('customName', customNameText);
-        //                         // chrome.storage.sync.get(null, function(result) {
-        //                         //     var projectVarKey = result.calledBy + '_customName';
-        //                         //     console.log('saving ' + customNameText + ' to ' + projectVarKey );
-        //                         //     var newEntry = {};
-        //                         //     newEntry[projectVarKey] = customNameText;
-        //                         //     chrome.storage.sync.set(newEntry);
-        //                         // });
-
-        //                         // apply name
-        //                         // chrome.storage.sync.get(null, function(result) {
-        //                         //     var projectVarKey = result.calledBy + '_customName';
-        //                         //     console.log('retrieved save: ' + result[projectVarKey]);
-        //                         // });
-
-        //                     }
-        //                     myProjectName.appendChild(readProjectNameInput);
-        //                 modalContent.appendChild(myProjectName);
-
-        //                 // Original Project Name Form
-        //                 var originalProjectName = document.createElement('p');
-        //                 originalProjectName.id = "originalProjectName";
-        //                 // originalProjectNamePar.innerHTML = "Original Project Name: "; // innerhtml set by button initializations 
-        //                 modalContent.appendChild(originalProjectName);
-
-        //                 var myProjectNotes = document.createElement('span');
-        //                 myProjectNotes.innerHTML = "Project Notes: </br>";
-        //                     var myProjectNotesTextArea = document.createElement('textarea');
-        //                     myProjectNotesTextArea.id = "myProjectNotesTextArea";
-        //                     myProjectNotesTextArea.setAttribute("rows", "8");
-        //                     myProjectNotesTextArea.setAttribute("cols", "40");
-        //                     myProjectNotes.appendChild(myProjectNotesTextArea);
-
-        //                     var newline = document.createElement('span');
-        //                     newline.innerHTML = "</br>";
-        //                     myProjectNotes.appendChild(newline);
-
-        //                     var saveProjectNotes = document.createElement('button');
-        //                     saveProjectNotes.textContent = "save notes";
-        //                     saveProjectNotes.onclick = function () {
-        //                         var customNotesText = innerDoc.getElementById('myProjectNotesTextArea').value;
-        //                         console.log('got notes: ' + customNotesText);
-        //                     }
-        //                     myProjectNotes.appendChild(saveProjectNotes);
-
-        //                 modalContent.appendChild(myProjectNotes);
-
-        //     modalDiv.appendChild(modalContent);
-        // myModalLocation.appendChild(modalDiv);
 
         /* Add buttons to valid projects */ 
         var projectNameColumn = innerDoc.getElementById('udtColumn0');
@@ -427,7 +301,6 @@ if (iframe != null) {
                 el.appendChild(btn);
             }
         }
-
     });
 }
 

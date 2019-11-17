@@ -3,7 +3,7 @@
 Select the unselectable in DeltekTC etime software!
 ___
 
-## Installation Instructions 
+## Old Installation Instructions (now on chrome & firefox store) 
 1) Clone this repo `git clone https://github.com/pwolfe8/EtimeSelect`
 2) Open Chrome extentions page (enter `chrome://extensions/` in URL)
 3) Turn on Developer mode (in upper right-hand corner) <br/>
