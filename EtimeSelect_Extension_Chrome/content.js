@@ -146,37 +146,46 @@ setInterval(function() {
 }, 1000); // trigger every 1 second(s)
 
 
-
 /* Enable Custom Charge Number Names & Project Notes */
+function GetChargeNumFromButtonParentID(innerDoc, buttonParentID){
+    var charge_num_id = buttonParentID.split('_')[0] + '_1';
+    var charge_num = innerDoc.getElementById(charge_num_id).textContent;
+    debug_log('got charge num ' + charge_num + ' for ' + buttonParentID);
+    return charge_num;
+}
 
 function ApplyCustomName(innerDoc, calledBy, customName) {
     innerDoc.getElementById(calledBy + '_projectNameSpan').textContent = customName;
 }
 
+// save original name, replace with custom name (if it exists)
 function ReplaceOriginalWithCustomName(innerDoc, calledBy, originalName) {
-    var projectVarKey = calledBy + "_originalName";
+    var charge_num = GetChargeNumFromButtonParentID(innerDoc, calledBy);
+
+    var projectVarKey = charge_num + "_originalName";
     var newEntry = {};
     newEntry[projectVarKey] = originalName;
     chrome.storage.sync.set(newEntry, function() {
-        debug_log('saved original name ' + originalName + ' to ' + calledBy + "_originalName");
+        debug_log('saved original name ' + originalName + ' to ' +  charge_num + '_originalName');
         
         // also get custom name and replace now
-        var  projectVarKey = calledBy + '_customName';
+        var  projectVarKey = charge_num + '_customName';
         chrome.storage.sync.get(projectVarKey, function(result) {
             var customName = result[projectVarKey];
             if (customName) {
-                debug_log('applying custom name ' + customName + ' to ' + calledBy);
+                debug_log('applying custom name "' + customName + '" to ' + charge_num);
                 //modify text before button with custom name
-                ApplyCustomName(innerDoc, calledBy, customName); //innerDoc.getElementById(calledBy + '_projectNameSpan').textContent = customName;
+                ApplyCustomName(innerDoc, calledBy, customName); 
             } else {
-                debug_log('custom name not yet defined for ' + calledBy);
+                debug_log('custom name not yet defined for ' + charge_num);
             }
         });
     });
 }
 
-function popupSettings(innerDoc, button_parent_id) {
-    debug_log("Settings popup opened by " + button_parent_id);
+function popupSettings(innerDoc, parent_id) {
+    var charge_num = GetChargeNumFromButtonParentID(innerDoc, parent_id);
+    debug_log("Settings popup opened by " + charge_num);
 
     var win = window.open("", "Title", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=400,height=300,top="+(screen.height / 2 - 150)+",left="+(screen.width / 2 - 200));
     win.document.title = "Project Settings";
@@ -198,11 +207,11 @@ function popupSettings(innerDoc, button_parent_id) {
     // update settings page original and current custom name
     chrome.storage.sync.get(null, function(result) {        
         // retrieve desired variables from sync storage
-        var originalNameKey = button_parent_id + "_originalName";
+        var originalNameKey = charge_num + "_originalName";
         var originalName = result[originalNameKey];
-        var customNameKey = button_parent_id + "_customName";
+        var customNameKey = charge_num + "_customName";
         var customName = result[customNameKey];
-        var projectNotesKey = button_parent_id + "_projectNotes";
+        var projectNotesKey = charge_num + "_projectNotes";
         var projectNotesSavedText = result[projectNotesKey];
 
         // set custom name if exists
@@ -224,14 +233,14 @@ function popupSettings(innerDoc, button_parent_id) {
     // set onclick for saving name
     win.document.getElementById('save_proj_name').onclick = function () {
         var customNameText = win.document.getElementById('custom_name_text').value;
-        var projectVarKey = button_parent_id + '_customName';
+        var projectVarKey = charge_num + '_customName';
         debug_log('saving ' + customNameText + ' to ' + projectVarKey );
         var newEntry = {};
         newEntry[projectVarKey] = customNameText;
         chrome.storage.sync.set(newEntry);
 
         // apply name change update
-        ApplyCustomName(innerDoc, button_parent_id, customNameText);
+        ApplyCustomName(innerDoc, parent_id, customNameText);
 
         // apply to current settings window
         win.document.getElementById('settings_title').textContent = "Settings for: \"" + customNameText + "\"";
@@ -241,14 +250,60 @@ function popupSettings(innerDoc, button_parent_id) {
     // set onclick for saving project notes
     win.document.getElementById('save_proj_notes').onclick = function () {
         var projectNotesText = win.document.getElementById('project_notes_text').value;
-        var projectNotesKey = button_parent_id + '_projectNotes';
+        var projectNotesKey = charge_num + '_projectNotes';
         debug_log('saving \"' + projectNotesText + '\" to \"' + projectNotesKey + "\"" );
         var newEntry = {};
         newEntry[projectNotesKey] = projectNotesText;
         chrome.storage.sync.set(newEntry);
     }
-
 }
+
+// check if element needs our button added
+function needsOurButton(innerDoc, parent_id) {
+    var customSpan = innerDoc.getElementById(parent_id + "_projectNameSpan");
+    return (customSpan == null);
+}
+
+// add a button to those that don't have them
+function AddNeededButtons(innerDoc) {
+    var projectNameColumn = innerDoc.getElementById('udtColumn0');
+    if (projectNameColumn == null)
+        return;      
+
+    numchildren = projectNameColumn.children.length;
+    for (i=0; i<numchildren; i++) {
+        var parent_id = 'udt' + i + '_0';
+        var el = innerDoc.getElementById(parent_id);
+        // check that it has text & no button yet
+        if ( (el.textContent.length > 0) && needsOurButton(innerDoc, parent_id) ) { 
+
+            // get original name and element id
+            var originalNameText = el.textContent;
+            var calledBy = el.id;
+
+            // wrap existing text in a span & append back
+            var projectNameSpan = document.createElement('span');
+            projectNameSpan.id = calledBy + "_projectNameSpan";
+            projectNameSpan.innerHTML = originalNameText;
+            el.innerHTML = "";
+            el.appendChild(projectNameSpan);
+
+            // change out original for custom names
+            ReplaceOriginalWithCustomName(innerDoc, calledBy, originalNameText);
+
+            // add a button on end
+            var btn = document.createElement("BUTTON");
+            btn.setAttribute("class","button_styling");
+            btn.innerHTML = "&#x22EE";
+            btn.onclick = function() {
+                var parent_id = this.parentElement.id;
+                popupSettings(innerDoc, parent_id);
+            }
+            el.appendChild(btn);
+        }
+    }
+}
+
 
 var iframe = document.getElementById('unitFrame');
 if (iframe != null) {
@@ -258,7 +313,7 @@ if (iframe != null) {
         if (innerDoc == null)
             return;
 
-        // debug clear sync storage
+        // debug clear sync storage (moved to popup.html for users to clear now)
         // chrome.storage.sync.clear();
 
         debug_log("Current Chrome Sync Storage: ");
@@ -267,40 +322,22 @@ if (iframe != null) {
         });
 
         /* Add buttons to valid projects */ 
-        var projectNameColumn = innerDoc.getElementById('udtColumn0');
-        if (projectNameColumn == null)
-            return;      
-
-        numchildren = projectNameColumn.children.length;
-        for (i=0; i<numchildren; i++) {
-            var el = innerDoc.getElementById('udt' + i + '_0');
-            if (el.textContent.length > 0) {
-            
-                // saves original name in storage & replaces with last saved custom name
-                var originalNameText = el.textContent;
-                var calledBy = el.id;
-
-                // wrap existing text in a span & append back
-                var projectNameSpan = document.createElement('span');
-                projectNameSpan.id = calledBy + "_projectNameSpan";
-                projectNameSpan.innerHTML = originalNameText;
-                el.innerHTML = "";
-                el.appendChild(projectNameSpan);
-
-                // change out original for custom names
-                ReplaceOriginalWithCustomName(innerDoc, calledBy, originalNameText);
-
-                // add a button on end
-                var btn = document.createElement("BUTTON");
-                btn.setAttribute("class","button_styling");
-                btn.innerHTML = "&#x22EE";
-                btn.onclick = function() {
-                    var button_parent_id = this.parentElement.id; 
-                    popupSettings(innerDoc, button_parent_id);
-                }
-                el.appendChild(btn);
-            }
-        }
+        AddNeededButtons(innerDoc);
     });
 }
+
+// // Check for change in number of charge numbers each second or change in month name
+setInterval(function() {
+    // get inner doc
+    var iframe = document.getElementById('unitFrame');
+    if (iframe == null)
+        return;
+    var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    if (innerDoc == null)
+        return;
+
+    // call function that adds buttons if they don't exist & callbacks
+    AddNeededButtons(innerDoc);
+
+}, 1000); // trigger every 1 second(s)
 

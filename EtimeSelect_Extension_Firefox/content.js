@@ -175,8 +175,8 @@ function ReplaceOriginalWithCustomName(innerDoc, calledBy, originalName) {
     });
 }
 
-function popupSettings(innerDoc, button_parent_id) {
-    debug_log("Settings popup opened by " + button_parent_id);
+function popupSettings(innerDoc, charge_num) {
+    debug_log("Settings popup opened by " + charge_num);
 
     var win = window.open("", "Title", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=400,height=300,top="+(screen.height / 2 - 150)+",left="+(screen.width / 2 - 200));
     win.document.title = "Project Settings";
@@ -198,11 +198,11 @@ function popupSettings(innerDoc, button_parent_id) {
     // update settings page original and current custom name
     chrome.storage.sync.get(null, function(result) {        
         // retrieve desired variables from sync storage
-        var originalNameKey = button_parent_id + "_originalName";
+        var originalNameKey = charge_num + "_originalName";
         var originalName = result[originalNameKey];
-        var customNameKey = button_parent_id + "_customName";
+        var customNameKey = charge_num + "_customName";
         var customName = result[customNameKey];
-        var projectNotesKey = button_parent_id + "_projectNotes";
+        var projectNotesKey = charge_num + "_projectNotes";
         var projectNotesSavedText = result[projectNotesKey];
 
         // set custom name if exists
@@ -224,14 +224,14 @@ function popupSettings(innerDoc, button_parent_id) {
     // set onclick for saving name
     win.document.getElementById('save_proj_name').onclick = function () {
         var customNameText = win.document.getElementById('custom_name_text').value;
-        var projectVarKey = button_parent_id + '_customName';
+        var projectVarKey = charge_num + '_customName';
         debug_log('saving ' + customNameText + ' to ' + projectVarKey );
         var newEntry = {};
         newEntry[projectVarKey] = customNameText;
         chrome.storage.sync.set(newEntry);
 
         // apply name change update
-        ApplyCustomName(innerDoc, button_parent_id, customNameText);
+        ApplyCustomName(innerDoc, charge_num, customNameText);
 
         // apply to current settings window
         win.document.getElementById('settings_title').textContent = "Settings for: \"" + customNameText + "\"";
@@ -241,7 +241,7 @@ function popupSettings(innerDoc, button_parent_id) {
     // set onclick for saving project notes
     win.document.getElementById('save_proj_notes').onclick = function () {
         var projectNotesText = win.document.getElementById('project_notes_text').value;
-        var projectNotesKey = button_parent_id + '_projectNotes';
+        var projectNotesKey = charge_num + '_projectNotes';
         debug_log('saving \"' + projectNotesText + '\" to \"' + projectNotesKey + "\"" );
         var newEntry = {};
         newEntry[projectNotesKey] = projectNotesText;
@@ -295,8 +295,9 @@ if (iframe != null) {
                 btn.setAttribute("class","button_styling");
                 btn.innerHTML = "&#x22EE";
                 btn.onclick = function() {
-                    var button_parent_id = this.parentElement.id; 
-                    popupSettings(innerDoc, button_parent_id);
+                    var charge_num = this.parentElement.id;
+                    
+                    popupSettings(innerDoc, charge_num);
                 }
                 el.appendChild(btn);
             }

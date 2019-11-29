@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Etime Select",
     "short_name": "EtimeSelect",
-    "version": "6.9.2",
+    "version": "6.9.3",
     "description": "Etime enhancements that allow you to select unselectable charge numbers, track surplus hours, and apply custom project names/notes.",
 
     "icons": { 
