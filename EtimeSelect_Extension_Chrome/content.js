@@ -1,5 +1,5 @@
 /* Debug Statements */
-var DEBUG_STATEMENTS = true;
+var DEBUG_STATEMENTS = false;
 function debug_log( text ) {
     if (DEBUG_STATEMENTS)
         console.log(text)
@@ -194,12 +194,11 @@ function popupSettings(innerDoc, parent_id) {
     
     settingsInnerHTML       += "<p>Custom Project Name:</br>";
     settingsInnerHTML       += "<input id=\"custom_name_text\" type=\"text\">";
-    settingsInnerHTML       += "<button id=\"save_proj_name\">Save</button>";
     settingsInnerHTML       += "</p>";
 
     settingsInnerHTML       += "<p>Project Related Notes:</br>";
     settingsInnerHTML       += "<textarea id=\"project_notes_text\" rows=\"8\" cols=\"50\"></textarea></br>";
-    settingsInnerHTML       += "<button id=\"save_proj_notes\">Save</button>";
+    settingsInnerHTML       += "<button id=\"save_proj_settings\">Save</button>"
     settingsInnerHTML       += "</p>";
 
     win.document.body.innerHTML = settingsInnerHTML;
@@ -230,8 +229,8 @@ function popupSettings(innerDoc, parent_id) {
             win.document.getElementById('project_notes_text').innerText = projectNotesSavedText;
     });
 
-    // set onclick for saving name
-    win.document.getElementById('save_proj_name').onclick = function () {
+    // set onclick for saving project settings
+    win.document.getElementById('save_proj_settings').onclick = function () {
         var customNameText = win.document.getElementById('custom_name_text').value;
         var projectVarKey = charge_num + '_customName';
         debug_log('saving ' + customNameText + ' to ' + projectVarKey );
@@ -245,10 +244,7 @@ function popupSettings(innerDoc, parent_id) {
         // apply to current settings window
         win.document.getElementById('settings_title').textContent = "Settings for: \"" + customNameText + "\"";
 
-    }
-
-    // set onclick for saving project notes
-    win.document.getElementById('save_proj_notes').onclick = function () {
+        // save project notes
         var projectNotesText = win.document.getElementById('project_notes_text').value;
         var projectNotesKey = charge_num + '_projectNotes';
         debug_log('saving \"' + projectNotesText + '\" to \"' + projectNotesKey + "\"" );
