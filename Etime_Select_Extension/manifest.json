@@ -1,30 +1,26 @@
 {
     "manifest_version": 2,
-    "name": "Etime Select",
-    "short_name": "EtimeSelect",
-    "version": "6.9.1",
-    "description": "Enables selecting & copying unselectable text in DeltekTC etime software. [Update 6.9.1] Added surplus hour counter.",
-
+    "name": "Etime Select 2021 Edition",
+    "short_name": "EtimeSelect2021",
+    "version": "6.9.2",
+    "description": "Enables selecting & copying unselectable text in Deltek Costpoint etime software. [Update 6.9.2] new etime update 5/10/2021",
     "icons": { 
         "16": "icons/icon16.png",
         "32": "icons/icon32.png",
         "48": "icons/icon48.png",
         "128": "icons/icon128.png" },
-
     "browser_action": {
         "default_icon": "icons/icon32.png",
         "default_popup": "popup.html"
     },
-    
     "content_security_policy": "script-src 'self' https://ajax.googleapis.com; object-src 'self'",
-    
     "permissions": [
         "activeTab"
     ],
     "content_scripts": [
       {
         "matches": [
-            "https://*/DeltekTC/*"
+            "https://cp.*.*.edu/masterPage.*"
         ],
         "css": ["button_styling.css"],
         "web_accessible_resources": [
@@ -35,8 +31,5 @@
         "run_at": "document_end"
       }
     ]
-
-
 }
-
   
