@@ -1,24 +1,20 @@
-/* Select the Unselectable Charge Numbers */
-function selectElement(e) {
-    var x = e.clientX, y = e.clientY,
-        elementMouseIsOver = document.elementsFromPoint(x, y);
-
-    // get the raw text inside selected element
-    var raw_text = elementMouseIsOver[0].textContent;
-    
-    
-    // select raw text if not empty and of proper class name
-    if (raw_text.length > 0 && elementMouseIsOver[0].className === "u") 
-    // if (raw_text.length > 0 && elementMouseIsOver[0].parentElement.id === "udtColumn1" )
-    {
-        window.getSelection().selectAllChildren(elementMouseIsOver[0]);
-    }
+/* Import JQuery 3.6.0 if not present */
+if (typeof jQuery != 'undefined') {  
+    // jQuery is loaded => print the version
+    console.log('jQuery Version loaded is: ' + jQuery.fn.jquery);
+} else {
+    var script = document.createElement('script');
+    script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+    script.type = 'text/javascript';
+    document.getElementsByTagName('head')[0].appendChild(script);
+    console.log('loading jQuery Version 3.6.0');
 }
-$(window).click(selectElement);
+
+/* @TODO vpn check + fast navigate to timesheet */
 
 
 /* Calculate Surplus Hours Worked */
-
+ 
 function isWorkday(innerDoc, date_num) {
     if (innerDoc == null)
         return null;
@@ -65,126 +61,95 @@ var originalPrintText = null;
 var lastTotalHours = null;
 var calculatedSurplusHours = 'calculating...';
 
-
-
+// var jqFindSurplusPrint = 'div:contains("Timesheet Lines"):last';
+var jqFindSurplusPrint = '.subtaskTbl:first';
 
 setInterval(function() {
-        
-    // grab inner doc 
-        var iframe = document.getElementById('unitFrame');
-        if (iframe == null)
-            return;
-        var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
-        if (innerDoc == null)
-            return;
-        
-        
-        // grab total hours worked so far
-        var currentTotalHoursBox = innerDoc.getElementById('grandTotal2');
-        if (currentTotalHoursBox == null)
-            return;
-        currentTotalHours = currentTotalHoursBox.textContent;
-        // end function if total hours is same as last updated ones
+    
+    // grab total hours worked so far
+    // and do no calculation if total hours is same as last updated ones
+    // monthTotal = parseInt($('#SCHEDULE_DESC_AND_P_TEXT')[0].value.split(' ')[1]);
+    currentTotalHours = parseFloat($('#rft2').find('span:first').text());
+    if (lastTotalHours == null){
+        lastTotalHours == currentTotalHours;
+    }
+    else if (currentTotalHours == lastTotalHours){
+        return;
+    } else {
+        lastTotalHours = currentTotalHours;
+    }
 
-        if (lastTotalHours == null){
-            lastTotalHours == currentTotalHours;
-        }
-        else if (currentTotalHours == lastTotalHours){
-            return;
-        } else {
-            lastTotalHours = currentTotalHours;
-        }
-        
-        // get print location box & original text content
-        var printLocation = innerDoc.getElementById('headerValueLabel');
-        if (printLocation == null)
-            return;
-        if (originalPrintText == null) {
-            originalPrintText = printLocation.textContent;
-        }
-        
-        // get box for month period total for num days in month and also to print to it
-        var monthPeriodEndBox = innerDoc.getElementById('endingDateSpan');
-        if (monthPeriodEndBox == null)
-            return;
-        daysInMonth = monthPeriodEndBox.textContent.split(' ')[1].split(',')[0]; // get number of days in month
-
-        
-        // main calculation 
-        var foundLastEnteredDay = false;
-        var numWorkdaysSoFar = 0;
-        for (i=daysInMonth; i>0; i--) {
-            // check if found last day
-            if (!foundLastEnteredDay){
-                // check if that days total hours is empty
-                if (!dayHoursEmpty(innerDoc, i)){
-                    foundLastEnteredDay = true;
-                    numWorkdaysSoFar++;
-                }
-            } 
-            // count workdays until last entered day
-            else {
-                if ( isWorkday(innerDoc, i) ) {
-                    numWorkdaysSoFar++;
-                }
+    // create span to print surplus hours on if doesn't exist yet
+    if (!$('#surplusHours').length) {
+        var printSpanInstance = $('<span id="surplusHours" style="padding-left: 7px; padding-right: 7px; font-size: 8pt; letter-spacing: 0.254px;">Surplus Hours: XX</span>');
+        $('.subtaskTbl:first').append(printSpanInstance);
+    }
+ 
+    // get number of days in the month
+    daysInMonth = parseInt($('#END_DT').val().split('/')[1]);
+    
+    // main calculation 
+    var foundLastEnteredDay = false;
+    var numWorkdaysSoFar = 0;
+    // count backwards from last day
+    for (i=daysInMonth; i>0; i--) {
+        // check if found last day
+        if (!foundLastEnteredDay) {
+            // check if that days total hours is empty
+            if (!dayHoursEmpty(innerDoc, i)) {
+                foundLastEnteredDay = true;
+                numWorkdaysSoFar++;
+            }
+        } 
+        // count workdays until last entered day
+        else {
+            if ( isWorkday(innerDoc, i) ) {
+                numWorkdaysSoFar++;
             }
         }
+    }
 
-        // final calc
-        calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
-        // console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
-        printLocation.textContent =  'Surplus Hours: ' + calculatedSurplusHours + '\xa0\xa0\xa0\xa0|\xa0\xa0\xa0\xa0' + originalPrintText;
+    // final calc & set text
+    calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
+    console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
+    $('#surplusHours').text(`Surplus Hours ${calculatedSurplusHours}`);
         
-}, 1000); // trigger every 1 second(s)
+}, 2000); // trigger every 2 second(s)
 
 
 
 /* Enable Custom Charge Number Names */
 
-var iframe = document.getElementById('unitFrame');
-if (iframe != null) {
-    iframe.addEventListener("load", function() {
+// var iframe = document.getElementById('unitFrame');
+// if (iframe != null) {
+//     iframe.addEventListener("load", function() {
 
-        var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
-        if (innerDoc == null)
-            return;
+//         var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+//         if (innerDoc == null)
+//             return;
         
-        var projectNameColumn = innerDoc.getElementById('udtColumn0');
-        if (projectNameColumn == null)
-            return;      
+//         var projectNameColumn = innerDoc.getElementById('udtColumn0');
+//         if (projectNameColumn == null)
+//             return;      
 
-        numchildren = projectNameColumn.children.length;
-        for (i=0; i<numchildren; i++) {
-            var el = innerDoc.getElementById('udt' + i + '_0');
-            if (el.textContent.length > 0) {
+//         numchildren = projectNameColumn.children.length;
+//         for (i=0; i<numchildren; i++) {
+//             var el = innerDoc.getElementById('udt' + i + '_0');
+//             if (el.textContent.length > 0) {
                 
-                console.log(el.textContent);
-                var btn = document.createElement("BUTTON");
-                btn.setAttribute("class","button_styling");
-                btn.innerHTML = "&#x22EE "; 
-                el.appendChild(btn);
-                // el.insertBefore(btn, el.firstChild);
+//                 console.log(el.textContent);
+//                 var btn = document.createElement("BUTTON");
+//                 btn.setAttribute("class","button_styling");
+//                 btn.innerHTML = "&#x22EE "; 
+//                 el.appendChild(btn);
+//                 // el.insertBefore(btn, el.firstChild);
                 
-                // btn.setAttribute("onclick", alert("clicked"));
-            }
+//                 // btn.setAttribute("onclick", alert("clicked"));
+//             }
                 
 
-        }
+//         }
 
-    });
-}
+//     });
+// }
   
-
-// window.onload = function() {
-//     alert('Page loaded');
-// };
-
-
-// document.addEventListener('mousemove', function (e) {
-//     var srcElement = e.srcElement;
-//     // Lets check if our underlying element is a DIV.
-//     if (srcElement.nodeName == 'DIV') {
-//         srcElement.textContent = 'asdf';
-//     }
-//   }, false);
-

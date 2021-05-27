@@ -27,7 +27,7 @@
             "icons/*"
         ],
         "all_frames": true,
-        "js": ["jquery.min.js","content.js"],
+        "js": ["content.js"],
         "run_at": "document_end"
       }
     ]
