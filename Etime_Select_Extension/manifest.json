@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "Etime Select 2021 Edition",
-    "short_name": "EtimeSelect2021",
+    "name": "Costing Time Point Saver",
+    "short_name": "CPTimeSaver",
     "version": "6.9.2",
-    "description": "Enables selecting & copying unselectable text in Deltek Costpoint etime software. [Update 6.9.2] new etime update 5/10/2021",
+    "description": "Suite of time saving features on the new Deltek time tracking software because it costs more time than previous system to use. [Update 6.9.2] switched to new system on 5/10/2021",
     "icons": { 
         "16": "icons/icon16.png",
         "32": "icons/icon32.png",
