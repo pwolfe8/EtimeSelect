@@ -1,58 +1,33 @@
-/* Import JQuery 3.6.0 if not present */
-if (typeof jQuery != 'undefined') {  
-    // jQuery is loaded => print the version
-    console.log('jQuery Version loaded is: ' + jQuery.fn.jquery);
-} else {
-    var script = document.createElement('script');
-    script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
-    script.type = 'text/javascript';
-    document.getElementsByTagName('head')[0].appendChild(script);
-    console.log('loading jQuery Version 3.6.0');
-}
+// console.log('welcome to CPTimeSaver');
+
+// var jq = document.createElement('script');
+// jq.onload = function(){};
+// jq.src = "https://code.jquery.com/jquery-3.6.0.min.js";
+// document.querySelector('head').appendChild(jq);
+
+// alert('hello there');
+
+
+// /* Import JQuery 3.6.0 if not present */
+// if (typeof jQuery != 'undefined') {  
+//     // jQuery is loaded => print the version
+//     console.log('jQuery Version loaded is: ' + jQuery.fn.jquery);
+// } else {
+//     var script = document.createElement('script');
+//     script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+//     script.type = 'text/javascript';
+//     document.getElementsByTagName('head')[0].appendChild(script);
+//     console.log('loading jQuery Version 3.6.0');
+// }
 
 /* @TODO vpn check + fast navigate to timesheet */
 
 
+function isWorkdayString(s) {
+    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(s);
+}
+
 /* Calculate Surplus Hours Worked */
- 
-function isWorkday(innerDoc, date_num) {
-    if (innerDoc == null)
-        return null;
-    
-    // hrsHeaderTextX is format, where X is (date_num - 1)
-    var id_str = 'hrsHeaderText' + (date_num - 1);
-    var hrsHeaderBox = innerDoc.getElementById(id_str);
-    if (hrsHeaderBox == null)
-        return null;
-
-    var txt = hrsHeaderBox.textContent
-    var dayStr = txt.slice(0, 3);
-    
-    var isTrue = true;
-    if (dayStr == 'Sat' || dayStr == 'Sun')
-        isTrue = false;
-    
-    return isTrue;
-
-}
-
-function dayHoursEmpty(innerDoc, date_num) {
-    if (innerDoc == null)
-        return null;
-
-    //DT2_x is format, where X is (date_num - 1)
-    var id_str = 'DT2_' + (date_num - 1);
-    var totalDayHoursBox = innerDoc.getElementById(id_str);
-    if (totalDayHoursBox == null)
-        return null;
-
-    if (totalDayHoursBox.textContent == '')
-        return true;
-    else 
-        return false;
-
-}
-
 var daysInMonth = null;
 var currentTotalHours = null;
 var lastTotalHours = null;
@@ -61,14 +36,15 @@ var originalPrintText = null;
 var lastTotalHours = null;
 var calculatedSurplusHours = 'calculating...';
 
-// var jqFindSurplusPrint = 'div:contains("Timesheet Lines"):last';
-var jqFindSurplusPrint = '.subtaskTbl:first';
+function calcSurplus() {
+    // only run if we're on the timesheet page 
+    if (!$('#SCHEDULE_DESC_AND_P_TEXT').length) { // (check if can't find monhtly hours box)
+        return;
+    } else {
+        console.log('found monthly hours. doing surplus hour calculation...');
+    }
 
-setInterval(function() {
-    
-    // grab total hours worked so far
-    // and do no calculation if total hours is same as last updated ones
-    // monthTotal = parseInt($('#SCHEDULE_DESC_AND_P_TEXT')[0].value.split(' ')[1]);
+    // check if total hours have changed to see if new calculation is needed
     currentTotalHours = parseFloat($('#rft2').find('span:first').text());
     if (lastTotalHours == null){
         lastTotalHours == currentTotalHours;
@@ -84,38 +60,66 @@ setInterval(function() {
         var printSpanInstance = $('<span id="surplusHours" style="padding-left: 7px; padding-right: 7px; font-size: 8pt; letter-spacing: 0.254px;">Surplus Hours: XX</span>');
         $('.subtaskTbl:first').append(printSpanInstance);
     }
- 
+
     // get number of days in the month
     daysInMonth = parseInt($('#END_DT').val().split('/')[1]);
-    
-    // main calculation 
+    console.log(`days in month: ${daysInMonth}`);
+
+    /* Count number of workdays that should have hours filled */
+    // get div index to first day (format of id: hdDiv26_1 for date. hdDiv26_0 for day)
+    // var firstDayDivIdx = parseInt($('div:contains("/1/")').filter('.hdDiv').attr('id').split('hdDiv')[1].split('_')[0]);
+    // console.log(`got first day div idx: ${firstDayDivIdx}`);
+    var firstDayDivIdx = 26;
+    var day = NaN;
+    var date = NaN;
+    var hours = NaN;
     var foundLastEnteredDay = false;
     var numWorkdaysSoFar = 0;
-    // count backwards from last day
-    for (i=daysInMonth; i>0; i--) {
+    // count from end of month to beginning
+    for (i=firstDayDivIdx + daysInMonth; i>firstDayDivIdx; i--) {
+        
+        // retrieve day/date/hours
+        day = $(`#hdDiv${i-1}_0`).text();
+        date = $(`#hdDiv${i-1}_1`).text();
+        hours = parseFloat($('#tot2').children('div').eq(i).text());
+        console.log(`${day} ${date}: ${hours} hrs`);
+
         // check if found last day
         if (!foundLastEnteredDay) {
-            // check if that days total hours is empty
-            if (!dayHoursEmpty(innerDoc, i)) {
-                foundLastEnteredDay = true;
-                numWorkdaysSoFar++;
+            // check if day has hours
+            if (hours != NaN) {
+                // check if it's a workday
+                if (isWorkdayString(day)) { 
+                    console.log(`found first workday!`);
+                    // flip flag and start counting workdays
+                    foundLastEnteredDay = true;
+                    numWorkdaysSoFar++;
+                }
             }
-        } 
+        }
         // count workdays until last entered day
-        else {
-            if ( isWorkday(innerDoc, i) ) {
-                numWorkdaysSoFar++;
-            }
+        else if (isWorkdayString(day)) { 
+            console.log(`this is a workday`);
+            // increment workday counter
+            numWorkdaysSoFar++;
         }
     }
 
     // final calc & set text
+    // monthTotal = parseInt($('#SCHEDULE_DESC_AND_P_TEXT')[0].value.split(' ')[1]);
     calculatedSurplusHours =  currentTotalHours - numWorkdaysSoFar * 8;
     console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
     $('#surplusHours').text(`Surplus Hours ${calculatedSurplusHours}`);
-        
-}, 2000); // trigger every 2 second(s)
-
+    
+}
+function sleep (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function timeoutHandler() {
+    await sleep(1);
+    $(document).ready(calcSurplus);
+}
+setInterval(timeoutHandler, 5000);
 
 
 /* Enable Custom Charge Number Names */
