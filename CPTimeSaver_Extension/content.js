@@ -1,21 +1,14 @@
+/* global includes/helper functions */
+
 // console.log('welcome to CPTimeSaver');
 
-// var jq = document.createElement('script');
-// jq.onload = function(){};
-// jq.src = "https://code.jquery.com/jquery-3.6.0.min.js";
-// document.querySelector('head').appendChild(jq);
-
-// alert('hello there');
-
-// /* Import JQuery 3.6.0 if not present */
+// // Import JQuery 3.6.0 if not present
 // var script = document.createElement('script');
 // script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
 // script.type = 'text/javascript';
 // document.getElementsByTagName('head')[0].appendChild(script);
 // console.log('loading jQuery Version 3.6.0');
 
-
-/* global helper functions */
 function sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -49,7 +42,28 @@ function simulateKeyPress(character) {
 }
 
 
-/* vpn check + fast navigate to timesheet */
+/* Attach Mutation Observers */
+var currentMonth = $('#END_DT').val();
+function onMonthChange(mutations) {
+    if (($('#pleaseWaitImage').css('visibility')) == 'hidden') {
+        if ($('#END_DT').val() != currentMonth) {
+            currentMonth = $('#END_DT').val();
+            console.log('month changed');
+            calcSurplus();
+        }
+        
+    }
+    // mutations.forEach(function(mutationRecord) {
+    //     console.log(`style changed: ${mutationRecord.oldValue}`);
+    // });
+}
+var monthObserver = new MutationObserver(onMonthChange);
+
+/* @TODO: disable shortcut intercepting  */
+
+/* @Feature: fast navigate to timesheet from main login page */
+// @TODO instead of jump to page maybe explore a different settings location other than popup.html?
+
 $(document).ready( function() {
     if (window.location.pathname=='/cploginform.htm') {
         console.log('loginform');
@@ -57,6 +71,7 @@ $(document).ready( function() {
     } else if (window.location.pathname=='/masterPage.htm') {
         console.log('masterpage');
         go2Timesheet();
+        monthObserver.observe($('#pleaseWaitImage')[0], { attributes : true, attributeFilter : ['style'] });
     }
 });
 function go2MasterPage() {
@@ -80,37 +95,80 @@ function go2MasterPage() {
 }
 function go2Timesheet() {
     var myScript = document.createElement("script");
+    myScript.id = 'attemptScript';
     myScript.innerHTML = 
       `
+      var attemptBuildMax = 15;
+      var attemptClickMax = 15;
+      var attemptBuildCtr = 0;
+      var attemptClickCtr = 0;
       function attemptBuild() {
         setTimeout(function() {
             console.log('attempting to open fav menu...');
+            attemptBuildCtr++;
             if (typeof ProductNav.myMnu != 'undefined') {
                 ProductNav.buildMyMenu(MyMenuMgr.myMenuArray);
                 ProductNav.myMnu.style.visibility='visible';
                 attemptClick();
-            } else {
+            } else if (attemptBuildCtr < attemptBuildMax) {
                 attemptBuild();
             }
         }, 500);
       }
       function attemptClick() {
         setTimeout(function() {
+            attemptClickCtr++;
             console.log('attempting to click timesheet in fav menu...');
             if (document.getElementById('myMnuLbl0') != null) {
                 document.getElementById('myMnuLbl0').click();
-            } else {
+            } else if (attemptClickCtr < attemptClickMax) {
                 attemptClick();
             }
           }, 500);
       }
+      function attemptScrollRight() {
+        document.getElementById('track1').click();
+        RSEvt.curSqlRS.srsTbl._scrR();
+      }
       attemptBuild();
       `;
-    document.body.appendChild(myScript);
+    setTimeout(function() {
+        document.body.appendChild(myScript);
+    }, 500);
 }
 
 
-/* Calculate Surplus Hours Worked */
+/* @Feature: Calculate Surplus Hours Worked */
+// @TODO scroll control to move to and find last entered hours
+// global var scroll left/right: 
+//      RSEvt.curSqlRS.srsTbl._scrL();
+//      RSEvt.curSqlRS.srsTbl._scrR();
+// @TODO fix month change calculation bug (may be fixed by auto-scroll)
+
+function scrollRight() {
+    if (!$('#scrollRightScriptDiv').length) {
+        createScrollRight();
+    }
+    $('#scrollRightScriptDiv').click();
+}
+function createScrollRight() {
+    var myScript = document.createElement("script");
+    myScript.id = 'attemptScrollRightScript';
+    myScript.innerHTML = 
+      `function attemptScrollRight() {
+        document.getElementById('track1').click();
+        RSEvt.curSqlRS.srsTbl._scrR();
+      }
+      `;
+    var myScriptDiv = document.createElement("div");
+    myScriptDiv.id = 'attemptScrollRightScriptDiv';
+    myScriptDiv.onchange = attemptScrollRight();
+    console.log('appending script and div')
+    document.body.appendChild(myScript);
+    document.body.appendChild(myScriptDiv);
+    setTimeout(function() {}, 500);
+}
+
 var daysInMonth = null;
 var currentTotalHours = null;
 var lastTotalHours = null;
@@ -174,11 +232,15 @@ function calcSurplus() {
         if (!foundLastEnteredDay) {     
             // check if day has hours
             if (hasHours) {         
-                // check if it's a workday
-                if (isWorkday) {        
-                    // flip flag for found first day and increment workday counter
-                    foundLastEnteredDay = true;
-                    numWorkdaysSoFar++;
+                // check if the hours are greater than zero
+                var hours = parseFloat($('#tot2').children('div').eq(firstDayDivOffset+dayNum).text());
+                if (hours > 0) {
+                    // check if it's a workday
+                    if (isWorkday) {        
+                        // flip flag for found first day and increment workday counter
+                        foundLastEnteredDay = true;
+                        numWorkdaysSoFar++;
+                    }
                 }
             }
         } else if (isWorkday) {         // count workdays until last entered day
@@ -193,6 +255,9 @@ function calcSurplus() {
     console.log('work days so far: ' + numWorkdaysSoFar + ', current total: ' + currentTotalHours + ', surplus: ' + calculatedSurplusHours );
     $('#surplusHours').text(`Surplus Hours ${calculatedSurplusHours}`);
     $('#surplusHours').css('color', surplusHoursColor);
+
+    // console.log('attempting to scroll right...');
+    // scrollRight();
 }
 
 // async wait for timesheet page and current hours to be present and ready for first page load calc of surplus hours
@@ -215,38 +280,33 @@ waitForAddedNode({
 $(document).on('change', 'input', calcSurplus);
 
 
-/* Enable Custom Charge Number Names */
+/* @Feature: Enable Custom Charge Number Names */
+
+// $('#EXSTNG').on('load', function() {console.log('hello there...');});
+
 
 // var iframe = document.getElementById('unitFrame');
 // if (iframe != null) {
 //     iframe.addEventListener("load", function() {
-
 //         var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
 //         if (innerDoc == null)
 //             return;
-        
 //         var projectNameColumn = innerDoc.getElementById('udtColumn0');
 //         if (projectNameColumn == null)
 //             return;      
-
 //         numchildren = projectNameColumn.children.length;
 //         for (i=0; i<numchildren; i++) {
 //             var el = innerDoc.getElementById('udt' + i + '_0');
 //             if (el.textContent.length > 0) {
-                
 //                 console.log(el.textContent);
 //                 var btn = document.createElement("BUTTON");
 //                 btn.setAttribute("class","button_styling");
 //                 btn.innerHTML = "&#x22EE "; 
 //                 el.appendChild(btn);
-//                 // el.insertBefore(btn, el.firstChild);
-                
+//                 // el.insertBefore(btn, el.firstChild);    
 //                 // btn.setAttribute("onclick", alert("clicked"));
 //             }
-                
-
 //         }
-
 //     });
 // }
   

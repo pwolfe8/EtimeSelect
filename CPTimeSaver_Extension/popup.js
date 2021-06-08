@@ -12,7 +12,9 @@
 //         document.getElementById('hours').textContent = "can't find outeme";
 //     }
     
-    
+console.log('hello there...');  
+window.open("https://cp.gtri.gatech.edu/masterPage.htm#A0");
+// window.open("https://cp.gtri.gatech.edu/masterPage.htm#A0", "_blank")
 
 //     // var button = document.getElementById('changelinks');
 //     // button.addEventListener('click', function () {
