@@ -25,3 +25,15 @@ ___
 Email me with any bugs or additional features you'd like. <br/>
 Thanks! <br/>
 -Philip
+
+feature list:
+
+- user settings
+- custom charge number names
+- automatic maximize
+  - help the hour counter
+- enable normal shortcut keys (and right click menu)
+
+- vacation fixing (version 2.0)
+
+- desktop app hub
