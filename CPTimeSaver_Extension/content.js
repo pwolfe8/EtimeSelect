@@ -240,18 +240,20 @@ function isWeekday(dayNumber) {
     return (dayIdx != 0) && (dayIdx != 6);
 }
 
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
 function getNumWorkdaysSoFar(){
-    // get today's date and override if input val doesn't match
-    var todayDateNum = new Date().getDate();
+    // get yesterday's date and override if input val doesn't match
+    var yesterdayDateNum = new Date().getDate() - 1;
     if ($('#surpHrsRefDate').length) {
         var inVal = parseInt($('#surpHrsRefDate').val());
-        if (inVal != todayDateNum) {
-            todayDateNum = inVal;
+        if (inVal != yesterdayDateNum) {
+          yesterdayDateNum = inVal;
         }
     }
 
     var workdayCtr = 0;
-    for (i=1; i<=todayDateNum; i++) {
+    for (i=1; i<=yesterdayDateNum; i++) {
         if (isWeekday(i)) {
             workdayCtr++;
         }
@@ -269,6 +271,7 @@ function calcSurplus() {
 
     // init custom charge nums if not populated 
     firstTimePopulateCustomChargenumDescription();
+    refreshCustomNames();
 
     // check if total hours have changed to see if new calculation is needed
     if (!$('#rft2').find('span:first').text().length) {
@@ -372,8 +375,7 @@ $(document).on('change', 'input', calcSurplus);
 // $(document).on('change', 'input', populateCustomChargeNumDescriptions);
 
 function createPopupSettings(line_idx) {
-
-    var charge_num = $('#'+charge_num_id_str).value;
+    var charge_num = $('#UDT02_ID-_'+line_idx+'_E')[0].value;
     console.log("Settings popup opened by " + charge_num);
 
     var win = window.open("", "Title", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=400,height=300,top="+(screen.height / 2 - 150)+",left="+(screen.width / 2 - 200));
@@ -422,7 +424,7 @@ function createPopupSettings(line_idx) {
     win.document.getElementById('save_proj_settings').onclick = function () {
         var customNameText = win.document.getElementById('custom_name_text').value;
         var projectVarKey = charge_num + '_customName';
-        debug_log('saving ' + customNameText + ' to ' + projectVarKey );
+        console.log('saving ' + customNameText + ' to ' + projectVarKey );
         var newEntry = {};
         newEntry[projectVarKey] = customNameText;
         chrome.storage.sync.set(newEntry);
@@ -437,10 +439,13 @@ function createPopupSettings(line_idx) {
         // save project notes
         var projectNotesText = win.document.getElementById('project_notes_text').value;
         var projectNotesKey = charge_num + '_projectNotes';
-        debug_log('saving \"' + projectNotesText + '\" to \"' + projectNotesKey + "\"" );
+        console.log('saving \"' + projectNotesText + '\" to \"' + projectNotesKey + "\"" );
         var newEntry = {};
         newEntry[projectNotesKey] = projectNotesText;
         chrome.storage.sync.set(newEntry);
+
+        // refresh custom name override
+        customNameOverride();
     }
 }
 
@@ -464,69 +469,53 @@ function initializeCustomChargeDescription(line_idx) {
     chrome.storage.sync.set(newEntry, function() {
         console.log(`saved original name ${originalName} to ${charge_num}_originalName`);
     });
-    chrome.storage.sync.get(charge_num + '_customName', function(result) {
-        var customName = result[charge_num + '_customName'];
-        if (customName) {
-            console.log(`applying custom name "${customName}" to ${charge_num}`);
-            $(`#LINE_DESC-_${line_idx}_E`)[0].value = customName;
-        } else {
-            console.log('custom name not yet defined for ' + charge_num);
-        }
-    });
+    customNameOverride(line_idx);
 
     // add custom button if doesn't exist
     addCustomChargeDescButton(line_idx);
 }
 function addCustomChargeDescButton(line_idx) {
     // add button if doesn't exist
-    var chargenum = $('#UDT02_ID-_'+i+'_E')[0].value;
-    var buttonId = `${chargenum}_button`;
+    var charge_num = $('#UDT02_ID-_'+line_idx+'_E')[0].value;
+    var buttonId = `${charge_num}_button`;
     if (!$(`#${buttonId}`).length) {
         // var descButton = $(`<span id="${buttonId}" ;">Surplus Hours: XX</span>`);
         // $('.subtaskTbl:first').append(printSpanInstance);
         // add a button on end
         var btn = document.createElement("BUTTON");
-        btn.setAttribute("class","text-left");
+        // btn.setAttribute("class","text-left");
         // <div id="lookup_icon" class="lookupIcon" style="height: 16px; visibility: visible; z-index: 10000; cursor: pointer; border: 0px; background-color: transparent; position: static; margin-top: 2px; width: 18px;"></div>
-        btn.setAttribute('style', 'display: inline; width: 15px; text-align: center;');
+        btn.setAttribute('style', 'width: 15px; text-align: center;');
         // var imgURL = chrome.extension.getURL("icons/icon16.png");
         // btn.setAttribute('style', `background: url(${imgURL})`);
-        // btn.setAttribute('style', `background: url(${imgURL})`);
         btn.innerHTML = "&#x22EE";
-        // btn.onclick = function() {.
-        //     createPopupSettings(line_idx);
-        // }
-
+        btn.onclick = function() {
+            createPopupSettings(line_idx);
+        }
         // append to description element
-        // var imgbtn = $(`<button type="button"><span><img src="${imgURL}" /></span>&nbsp;Click Me</button>`)
         $(`#LINE_DESC-_${line_idx}_E`).parent().prepend(btn);
     }
 }
 
-// $('#EXSTNG').on('load', function() {console.log('hello there...');});
+function refreshCustomNames() {
+    for (i=0; i<$('#EXSTNG').children().length; i++) {
+        customNameOverride(i);
+    }
+}
 
-// var iframe = document.getElementById('unitFrame');
-// if (iframe != null) {
-//     iframe.addEventListener("load", function() {
-//         var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
-//         if (innerDoc == null)
-//             return;
-//         var projectNameColumn = innerDoc.getElementById('udtColumn0');
-//         if (projectNameColumn == null)
-//             return;      
-//         numchildren = projectNameColumn.children.length;
-//         for (i=0; i<numchildren; i++) {
-//             var el = innerDoc.getElementById('udt' + i + '_0');
-//             if (el.textContent.length > 0) {
-//                 console.log(el.textContent);
-//                 var btn = document.createElement("BUTTON");
-//                 btn.setAttribute("class","button_styling");
-//                 btn.innerHTML = "&#x22EE "; 
-//                 el.appendChild(btn);
-//                 // el.insertBefore(btn, el.firstChild);    
-//                 // btn.setAttribute("onclick", alert("clicked"));
-//             }
-//         }
-//     });
-// }
+function customNameOverride(line_idx) {    
+    var charge_num = $('#UDT02_ID-_'+line_idx+'_E')[0].value;
+    chrome.storage.sync.get(charge_num + '_customName', function(result) {
+        var customName = result[charge_num + '_customName']; 
+        if (customName) {
+            console.log(`applying custom name "${customName}" to ${charge_num}`);
+            $(`#LINE_DESC-_${line_idx}_E`)[0].value = customName;
+        } else {
+            console.log('custom name not yet defined for ' + charge_num);
+        }
+
+    });
+}
+
+$('#EXSTNG').on('load', function() {console.log('hello there...');});
   
