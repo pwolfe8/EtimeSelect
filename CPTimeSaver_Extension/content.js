@@ -298,9 +298,9 @@ function calcSurplus() {
     }
     // create input to set current day to calc surplus hours based on if doesn't exist yet
     if (!$('#surpHrsDateSpan').length) {
-        var currentWorkDate = new Date().getDate();
-        var currentWorkDateInput = `<span id="surpHrsDateSpan" class="sbtskLnk" style="color: black;padding-left: 3px; padding-right: 3px; font-size: 8pt; letter-spacing: 0.254px;">Day Of Month:<input id="surpHrsRefDate" value="${currentWorkDate}" onfocusout="calcSurplus()" type="text" maxlength="2" style="width: 20px;"></input> </span>`;
-        $('.subtaskTbl:first').append(currentWorkDateInput);
+        var yesterdayWorkDate = new Date().getDate() - 1;
+        var yesterdayWorkDateInput = `<span id="surpHrsDateSpan" class="sbtskLnk" style="color: black;padding-left: 3px; padding-right: 3px; font-size: 8pt; letter-spacing: 0.254px;">Day Of Month:<input id="surpHrsRefDate" value="${yesterdayWorkDate}" onfocusout="calcSurplus()" type="text" maxlength="2" style="width: 20px;"></input> </span>`;
+        $('.subtaskTbl:first').append(yesterdayWorkDateInput);
     }
 
     // get number of days in the month
